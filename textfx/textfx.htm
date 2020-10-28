@@ -1,0 +1,120 @@
+
+<!DOCTYPE html> <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <link rel="icon" href="./favicon-32.png">
+	<meta name="keywords" content="Kristopher Driver, emergence, the melting pot, www.krisdriver.com">
+	<meta name="description" content="Find more from Kristopher Driver at www.krisdriver.com - Graphics, books, music, scripts">
+	<title>Kristopher Driver - textFX Example - www.krisdriver.com - @paxdriver</title>
+    <style>
+        #center{
+            background-color: #222;
+            margin: 0 auto; 
+        } 
+    </style>
+</head>
+<body>
+<!-- Center Div -->
+<div id="center">
+
+        <!-- INSERT THIS SCRIPT TAG SOMEWHERE BELOW THE HEAD. Head tag must be rendered before this tag is called -->
+        <script src='./textfx.js'></script>    
+        <!-- The above line need only be added once to use and reuse this script -->
+    
+    <div>
+    <script>
+        // standard example, say, for a page or article header
+        growIn("www.krisdriver.com", 100, "2.5rem", 'white', 'rgba(250,150,100,0.25)', '0.75s')
+        
+        // BEWARE - long texts won't word wrap very well
+        shrinkIn("...and you can put more here without all the parameters, just using defaults, but be aware that word wrapping ain't so great", 15, '0.75rem', 'white', 'rgba(255,255,255,0.35)', '0.2s')
+
+        // set the background color yourself, and change the animation duration
+        waveUp("Kristopher Driver - 'Emergence: Luctor et Emergo'", 85, "0.75rem", 'green','rgba(255,255,255,1)','0.55s');
+    </script></div>
+
+    <div>
+    <script>
+        // standard example, say, for a page or article header
+        waveDown("www.krisdriver.com", 200, "2.5rem", 'white', 'rgba(250,150,100,0.25)', '0.95s')
+        
+        // BEWARE - long texts won't word wrap very well
+        waveLeft("don't forget, the text background color defaults to transparent.", 125, '1.35rem', 'white', 'rgba(255,255,255,0)', '0.75s')
+
+        // set the background color yourself, and change the animation duration
+        waveRight("Kristopher Driver - 'Emergence: Luctor et Emergo'", 85, "0.85rem", 'green','rgba(255,255,255,1)','0.55s');
+    </script></div>
+
+<!-- SCRIPT FLIPS (VERTICALLY) -->
+    <div>
+    <script>
+        // standard example, say, for a page or article header
+        flipDown("www.krisdriver.com", 200, "2.5rem", 'white', 'rgba(250,150,100,0.25)', '0.95s')
+        flipUp("www.krisdriver.com", 200, "2.5rem", 'white', 'rgba(250,150,100,0.25)', '0.95s')
+        
+        // set the background color yourself, and change the animation duration
+        flipDown("Kristopher Driver - 'Emergence: Luctor et Emergo'", 85, "0.75rem", 'green','rgba(255,255,255,1)','0.55s');
+        flipUp("Kristopher Driver - 'Emergence: Luctor et Emergo'", 85, "0.75rem", 'green','rgba(255,255,255,1)','0.55s');
+    </script></div>
+
+<!-- SCRIPT alternating waves & flip (horizontally) -->
+    <div>
+    <script>
+        // standard example, say, for a page or article header
+        altwaveUp("www.krisdriver.com", 100, "2.5rem", 'white', 'rgba(250,150,100,0.25)', '0.75s')
+        
+        // BEWARE - long texts won't word wrap very well
+        altwaveRight("...and you can put more here without all the parameters, just using defaults, but be aware that word wrapping ain't so great", 15, '0.75rem', 'white', 'rgba(255,255,255,0.35)', '0.2s')
+
+        // set the background color yourself, and change the animation duration
+        flipIn("Kristopher Driver - 'The Melting Pot: A Canadian Guide to Cooking & Nutrition for Managing Chronic Health Conditions'", 65, "0.75rem", 'green','rgba(255,255,255,1)','0.55s');
+    </script></div>
+</div>
+
+<br />
+<br />
+
+<!-- frivolous styling of a refresh button to show scripts won't interfere with other markups. Lower portion is entirely unnecessary for practical use and is meant for demonstrational purposes only. -->
+    <div id='resetbutton'><span>-RESET-</span></div>
+    <p>Note: if you're not a fan of the blocky text, don't worry, default color is transparent. It's just being used in the demos to show you it can be easily changed to suit your needs. Alternatively, you can set the background block color to match whatever div container you place the text effect into.</p>
+    <style>
+        #resetbutton{
+            color: white; 
+            text-shadow: 2px 2px black; 
+            background-color: pink;
+            border-radius: 8px; 
+            text-align: center; 
+            width: 200px; 
+            margin: auto; 
+            padding: 5px; 
+            background-color: darkslategray; 
+            box-shadow: 2px 2px 3px black; 
+            cursor: pointer;
+            transform: translateY(0);
+            transition: all 0.125s ease-out 0s;
+        }
+        #resetbutton:hover {
+            background-color: #ccc;
+            color: black;
+            letter-spacing: .25rem;
+            text-shadow: 2px 2px white;
+            cursor: pointer;
+            transform: translateY(0.05rem);
+        }
+    </style>
+    <script>
+    // refresh button at the bottom of the demo page - unrelated to animation scripts
+    const but_reset = document.getElementById('resetbutton');
+    but_reset.onclick = (e)=>{
+        e.preventDefault();
+        console.log(e);
+        window.location.reload(false);
+        return false;
+    }
+    </script>
+<!-- demo only  -->
+
+<noscript>
+	<h1>Please enable javascript to view this site</h1>
+</noscript>
+</body>
+</html>

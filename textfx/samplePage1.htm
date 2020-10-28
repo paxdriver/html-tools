@@ -1,0 +1,156 @@
+
+<!DOCTYPE html> <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <link rel="icon" href="./favicon-32.png">
+	<meta name="keywords" content="kristopher driver, emergence, melting pot, www.krisdriver.com">
+	<meta name="description" content="www.krisdriver.com">
+	<title>Kristopher Driver - textFX Example - www.krisdriver.com - @paxdriver</title>
+    <style>
+        #center{
+            background-color: #222;
+            margin: 0 auto; 
+        }
+    </style>
+</head>
+<body>
+<!-- Center Div -->
+<div id="center">
+
+        <!-- INSERT THIS SCRIPT TAG SOMEWHERE BELOW THE HEAD. Head tag must be rendered before this tag is called -->
+        <script src='./textfx.js'></script>    
+        <!-- The above line need only be added once to use and reuse this script -->
+    
+    <!-- SCRIPT waveUp -->
+    <div>
+    <script>
+        // standard example for a page header
+        waveUp("www.krisdriver.com", 100, "2.5rem", 'white', 'rgba(250,150,100,0.25)', '0.75s')
+        
+        // BEWARE - long texts won't word wrap very well
+        waveUp("...and you can put more here without all the parameters, just using defaults, but be aware that word wrapping ain't so great", 15, '0.75rem', 'white', 'rgba(255,255,255,0.35)', '0.2s')
+
+        // set the background color yourself, and change the animation duration
+        waveUp("Kristopher Driver - 'Emergence: Luctor et Emergo'", 85, "0.75rem", 'green','rgba(255,255,255,1)','0.55s');
+
+        // use nulls to make the whole text animate together, ie: no offsets
+        waveUp('testing blank parameters',null , null, 'yellow', null, '3s')
+    </script></div>
+
+    <!-- SCRIPT waveDown -->
+    <div>
+    <script>
+        // standard example for a page header
+        waveDown("www.krisdriver.com", 100, "2.5rem", 'white', 'rgba(250,150,100,0.25)', '0.75s')
+        
+        // BEWARE - long texts won't word wrap very well
+        waveDown("...and you can put more here without all the parameters, just using defaults, but be aware that word wrapping ain't so great", 15, '0.75rem', 'white', 'rgba(255,255,255,0.35)', '0.2s')
+
+        // set the background color yourself, and change the animation duration
+        waveDown("Kristopher Driver - 'The Melting Pot: A Canadian Guide to Cooking & Nutrition for Managing Chronic Health Conditions'", 65, "0.75rem", 'green','rgba(255,255,255,1)','0.55s');
+
+        // use nulls to make the whole text animate together, ie: no offsets
+        waveDown('testing blank parameters',null , null, 'yellow', null, '3s')
+    </script></div>
+
+    <!-- SCRIPT waveLeft -->
+    <div>
+    <script>
+        // standard example for a page header
+        waveLeft("www.krisdriver.com", 100, "2.5rem", 'white', 'rgba(250,150,100,0.25)', '0.75s')
+        
+        // BEWARE - long texts won't word wrap very well
+        waveLeft("...and you can put more here without all the parameters, just using defaults, but be aware that word wrapping ain't so great", 15, '0.75rem', 'white', 'rgba(255,255,255,0.35)', '0.2s')
+
+        // set the background color yourself, and change the animation duration
+        waveLeft("Kristopher Driver - 'Emergence Soundtrack available NOW!'", 45, "0.75rem", 'green','rgba(255,255,255,1)','0.55s');
+    </script></div>
+
+    <!-- SCRIPT waveRight -->
+    <div>
+    <script>
+        // standard example for a page header
+        waveRight("www.krisdriver.com", 100, "2.5rem", 'white', 'rgba(250,150,100,0.25)', '0.75s')
+        
+        // BEWARE - long texts won't word wrap very well
+        waveRight("...and you can put more here without all the parameters, just using defaults, but be aware that word wrapping ain't so great", 15, '0.75rem', 'white', 'rgba(255,255,255,0.35)', '0.2s')
+
+        // set the background color yourself, and change the animation duration
+        waveRight("www.facebook.com/emergencenovel for the official author page!", 45, "0.75rem", 'green','rgba(0,0,0,1)','0.55s');
+    </script></div>
+
+    <!-- ANIMATION ALTERNATING UP AND DOWN -->
+    <div>
+    <script>
+        // standard example for a page header
+        altwaveUp("www.krisdriver.com", 150, "2.5rem", 'white', 'rgba(250,150,100,0.25)', '1.05s')
+        
+        // BEWARE - long texts won't word wrap very well
+        altwaveUp("...and you can put more here without all the parameters, just using defaults, but be aware that word wrapping ain't so great", 65, '0.75rem', 'white', 'rgba(255,255,255,0.35)', '0.8s')
+
+        // set the background color yourself, and change the animation duration
+        altwaveUp("Follow on Twitter for more @paxdriver!!!", 85, "0.75rem", 'green','rgba(0,0,0,1)','0.65s');
+    </script>
+    </div>
+
+    <!-- ANIMATION ALTERNATING UP AND DOWN -->
+    <div>
+    <script>
+        // standard example for a page header
+        altwaveLeft("www.krisdriver.com", 125, "2.5rem", 'white', 'rgba(250,150,100,0.25)', '1s')
+        
+        // BEWARE - long texts won't word wrap very well
+        altwaveLeft("...and you can put more here without all the parameters, just using defaults, but be aware that word wrapping ain't so great", 85, '0.75rem', 'white', 'rgba(255,255,255,0.35)', '0.5s')
+
+        // set the background color yourself, and change the animation duration
+        altwaveLeft("and you can use it for navigation links and stuff too!", 45, "0.75rem", 'green','rgba(255,255,255,1)','0.75s');
+    </script>
+</div>
+</div>
+
+<br />
+<br />
+
+<!-- frivolous styling of a refresh button to show scripts won't interfere with other markups. Lower portion is entirely unnecessary for practical use and is meant for demonstrational purposes only. -->
+    <div id='resetbutton'><span>-RESET-</span></div>
+    <p>Note: if you're not a fan of the blocky text, don't worry, default color is transparent. It's just being used in the demos to show you it can be easily changed to suit your needs. Alternatively, you can set the background block color to match whatever div container you place the text effect into.</p>
+    <style>
+        #resetbutton{
+            color: white; 
+            text-shadow: 2px 2px black; 
+            background-color: pink;
+            border-radius: 8px; 
+            text-align: center; 
+            width: 200px; 
+            margin: auto; 
+            padding: 5px; 
+            background-color: darkslategray; 
+            box-shadow: 2px 2px 3px black; 
+            cursor: pointer;
+            transform: translateY(0);
+            transition: all 0.125s ease-out 0s;
+        }
+        #resetbutton:hover {
+            background-color: #ccc;
+            color: black;
+            letter-spacing: .25rem;
+            text-shadow: 2px 2px white;
+            cursor: pointer;
+            transform: translateY(0.05rem);
+        }
+    </style>
+    <script>
+    const but_reset = document.getElementById('resetbutton');
+    but_reset.onclick = (e)=>{
+        e.preventDefault();
+        console.log(e);
+        window.location.reload(false);
+        return false;
+    }
+    </script>
+<!-- demo only  -->
+
+<noscript>
+	<h1>Please enable javascript to view this site</h1>
+</noscript>
+</body>
+</html>
