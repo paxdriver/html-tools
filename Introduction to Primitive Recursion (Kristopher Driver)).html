@@ -144,7 +144,7 @@
             function multiplyThese(){
                 let args = Array.from(arguments)
                 let result = 1 // since initializing result to 0 would make our multiplies all return zero, we use 1 instead of 0 for this function
-                args.forEach( (v, i, a) => {    // ()={ do stuff... return } is shorthand in javascript for "function(){ do stuff... return}"
+                args.forEach( (v, i, a) => {    // ()=>{ do stuff... return } is shorthand in javascript for "function(){ do stuff... return}"
                     result = recursive_multiply(result, v)
                 })
                 return result
