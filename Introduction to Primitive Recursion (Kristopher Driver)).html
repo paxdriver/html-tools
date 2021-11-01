@@ -1,0 +1,161 @@
+<html>
+    <head><title>Frivolous Gravitas - Introduction to Primitive Recursion: Programming Beginner to Advanced in 1 lesson</title>
+        <h1>Visit <a href="http://krisdriver.com">KrisDriver.com</a> </h1>
+        <h1>OR: Find <a href="https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg">Frivolous Gravitas Podcast</a> also available on YouTube</h1>
+    <author>Kristopher Driver</author>
+    <meta name="description" content="Introductory primitive recursion tutorial scripted in vanilla javascript and run in the web browser - start to finish from scratch. Check out Frivolous Gravitas Podcast on iTunes / YouTube for weekly broadcasts on controversial but necessary conversations affecting this world." />
+    </head>
+    <body>
+        <script type='text/javascript'>
+            console.log('start of script...');
+            
+            // first things first, some definitions...
+            // If you're having trouble with the horizontal scrolling to read these comments, check your text editor for a setting that sounds like "wrap lines" or "wrap comments" to keep all the text on your screen in front of you. Just in case anyone thought they had to scroll left and right just to read all of this nonsense it would drive them batty. On with the gong, as they say:
+            
+            // DEFINITIONS-y stuff:
+            // <---- slash, slash means the computer will ignore anything written in this line. These are called 'comments'
+            // We use this double slash to help us make notes describing our code or leaving reminders for ourselves later on
+            
+            /* For longer comments that span many lines you may want to use star-slash, with the stars facing inside of the slashes
+            for multi-line comments (no need to keep writing "//" at the beginning of every line) */
+            
+            // To define a variable it's best to use a keyword "let", as in "let myvariable equal 0 ---> let myvariable = 0"
+            // We can still create variables without using the "let", "const", "var" keywords, but they will considered part of the "global scope" or "lexical environment", a concept known as "clojure". We won't go into that much detail in this lesson but in case you're curious, that's what you should look up if you want to find out more.
+            
+            // DATA TYPES => String, Number, Array, Object, function  (basically)
+                // String:
+            string_variable = "This is a string, even numbers are considered letters in here, (aka 'characters')"   // use single or double quotes, but not either or. It must be one or the other you decide to use to wrap text. Keep in mind apostrophes and quotations because that's a very common source of debug errors and malicious code.
+            another_string_variable = 'Single quotes also work, if you need to use "double quotes" as part of the string '        
+                // Number aka Integer (or floating points, or doubles.. whatever. Just basically)
+            int_number = 5     // integers are just numbers without decimal points. They cal also be negative numbers
+                // Array aka List
+            list_array = ['this is a list of variables or values', 'of almost anything', 'you can imagine', string_variable, another_string_variable, int_number]
+            console.log(list_array)
+            // arrays are also called lists, they are a single variable name that stores several pieces of info. We can retrieve their values by using the order in which they've been assigned. The index starts at 0, instead of one.
+            // Array example: x[0] = "first index"; x[1] = 'second index'
+            // Think of a variable as any single item you want to carry around or reference to others. Think of an array like a group of data, like coordinates are x, y, z it would be easiest to store all 3 in a "position" variable.
+            
+            // OBJECT -> you can ignore that one for now. Technically everything in javascript is an "Object" as defined by the language, even functions and operators. It would be a 300 page philosophical treatise to try to describe javascript objects in a single tutorial script. But here I go again, trying anyway lol.
+            
+            // So long as we remember the order in which the coordinates are assigned, we can always check vertical position by calling position[1], or the x coordinate by call position[0], for example.
+            
+            // Be careful not to use keywords reserved by the programming language, words like "function", "Number", "Array", "arguments"
+            
+            // Parentheses are used to group values together and work just like order of operations in math: (1 + 3) * 5
+            // use double equals '==' to check if something is equal to another. Single "=" means "assign the thing on the right to the variable name on the left"
+            
+            console.log('this will display anything we type. We will be using this constantly while we code to check that our variables and operations and working as we planned:')
+            console.log('for example, int_variable is: ')
+            console.log(int_number)
+            // to see the console output in the web browser, hold ctrl and shift and press the letter 'i' (in chrome)
+            
+            // Functions are operations we can define and reuse. A function is just a variable constaining instructions instead of a value. These instructions can be used to produce a value too.
+            // Not only can functions produce values on their own, they can also produce values based on input values we give them
+            function zero(num){ 
+                return 0 // 'return' is a keyword that ends the function and gives back whatever value is specified after the 'return' keyword
+            } // everything inside of these curly braces are the instructions of the function.
+            
+            function addOne(num){ 
+                // this function expects to receive a number when it is called. 
+                // console.log(num)    // logs whatever value is given to the function when it is called
+                // += is short hand in javascript and many other programming languages for x = "current value of x" + y ---> for eg) x += 5 is the same as x = x + 5
+                return num+1        // notice how we indent inside of functions? We do this to help us see at a glance that this code resides inside of the addOne() function
+            }
+
+            function minusOne(some_number){ return some_number + (-1) } // Notice we can call the variable we use to store the value we expect to get from calling the function with any name we want
+            
+            function multiplyNormally(num1, num2){ return (num1 * num2) }   // to keep our code cleaner, short function definitions can be written in a single line
+
+            // Add 2 numbers using a loop...
+            function loop_adder(num1, num2) {
+                let first = num1
+                let second = num2
+                let result = first
+                // The above three instructions can me reduced to a single line thanks to the built in shortcuts of javascript: let [first, second, result] = [num1, num2, first]    
+                // adding numbers by using a simple loop
+                while (second>0) {  // while (this expression is true) { then do whatever I write in here }
+                    second = minusOne(second)   // decrement the loop's counter
+                    result = addOne(result)     // increment the accumulated total into the 'result' variable
+                }
+                // We're reducing the value of second one at a time, and each time we do we're adding to the result. In other words, if I want to say "3 times 2", it's the same as 3 + (1+1+1).
+                // So if we want to get the value of "1+1+1" and do that 5 times, it's the same as saying 5x3.
+                return result                   // end the function and spit out this variable "result"
+            }
+
+            // adds two numbers recursively calling itself to perform the operation instead of describing a loop:
+            function recursive_adder(num1, num2, carryValue=0) {
+                let first = num1        // the first number we give the function
+                let second = num2       // the second number we give the function
+                let result = carryValue // the accumulated total passed on with each function call
+
+                if (second >= 1) { // if (whatever in here equates to true) { then do the things inside of these curly braces, but only if it's true} 
+                    result = addOne(result) 
+                    second = minusOne(second)
+                    result = recursive_adder(first, second, result)
+                    return result
+                }
+                else { // then we start counting the other ones, one at a time and accumulating the result when the stack collapses.
+                    if (first >= 1) {
+                        result = addOne(result)
+                        first = minusOne(first)
+                        result = recursive_adder(first, second, result)
+                        return result
+                    }
+                    else {
+                        return result
+                    }
+                return result
+                }
+            }
+
+            // default value for the accumulator on the first function call is zero
+            function recursive_multiply(num1, num2, accumulator=0){
+                // if any of the 2 numbers we give our function are zero, anything multiplied by zero is 0
+                if (num1 == 0 || num2 == 0) {
+                    return zero()
+                }
+                // don't be distracted by the syntax, this is the same as saying "let first = num1; let second = num2; let result = accumulator", but this is shorter
+                let [first, second, result] = [num1, num2, accumulator]
+
+                if (first > 1) {
+                    result = recursive_adder(second, result)
+                    first = minusOne(first)                     // we've added 1 step to the result, so run this again with 1 less step...
+                    return recursive_multiply(first, second, result)    // call my function again and give me the result of it using the accumulated total and 
+                }   // once we've run out of steps to take, we can spit out the accumulated result
+                else { // once first number gets down to 1, the result is just the accumulator plus second number...
+                    // if 1 of our 2 numbers is 1, output the second number because n x 1 always equals y
+                    result = recursive_adder(second, result)
+                    return result
+                }
+            }
+
+            let x = recursive_multiply(5, 3);
+            console.log(x)
+
+            // getting fancy... we're going to make functions that allow us to do our recursive add/multiply to an unlimited number of arguments (ie, number of values passed into the function's parentheses, like the values in this:--> my_function(value_1, value_2, ..., value_1929, ... ) )
+            function addThese(){
+                let args = Array.from(arguments)
+                let result = 0
+                args.forEach( function(value, index, arr) {
+                    result = recursive_adder(result, value)
+                })
+                return result
+            }
+            function multiplyThese(){
+                let args = Array.from(arguments)
+                let result = 1 // since initializing result to 0 would make our multiplies all return zero, we use 1 instead of 0 for this function
+                args.forEach( (v, i, a) => {    // ()={ do stuff... return } is shorthand in javascript for "function(){ do stuff... return}"
+                    result = recursive_multiply(result, v)
+                })
+                return result
+            }
+
+            let testingNewFunctions = []
+            testingNewFunctions[0] = addThese(1,2,3,4,5,6,7);
+            testingNewFunctions[1] = multiplyThese(1,2,3,4,5,6,7);
+
+            console.log(testingNewFunctions)
+
+        </script>
+    </body>
+</html>
