@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+    <head><title>Frivolous Gravitas - Introduction to Javascript: Fun with Functions!!!</title>
+    <author>Kristopher Driver - krisdriver.com</author>
+    <h4>Weekly #podcast #rss feed url: <a href="www.krisdriver.com">http://www.krisdriver.com/feed/rssfeed.xml</a></h4>
+    <meta name="description" content="Introductory javascript, manipulating elements" />
+    <meta charset="utf-8">
+    </head>
+    <body>
+        <script type='text/javascript'>
+        // CTRL + S to save the text editor
+        // ALT + TAB to switch between text editor and browser window
+        // CTRL + R (or just F5) to refresh the browser
+        // CTRL + / in the text editor to comment out a line of code (SublimeText or VScode shortcut for text editors)
+        // Please show your support by giving due credit, and share these free educational resources to your heart's content :)
+
+        let body = document.getElementsByTagName('body')[0]
+
+        function whenPageLoaded(){
+            function firstFunction(a, b){
+                console.log('firstFunction() is being called...')
+                console.log(`The value of the first parameter is: ${a}`)
+                console.log(`The value of the second parameter is: ${b}`)
+                return a + b
+            }
+
+            function secondFunction(fn){
+                console.log('secondFunction() is being called...')
+                let x = fn
+                return x('value one', 'value two')
+            }
+
+            function thirdFunction(a, b, c){
+                console.log('thirdFunction() is being called...')
+                return c(a, b)
+            }
+
+            let answer1 = firstFunction('a', 'b')
+            let answer2 = secondFunction(firstFunction)
+            let answer3 = thirdFunction('new value of a', 'new value of b', firstFunction)
+
+            console.log(answer1)
+            console.log(answer2)
+            console.log(answer3)
+        }
+
+        // window is a reserved object, all of our script and html are run in the browser, the word used to describe this bahaviour is 'window' in javascript
+        // functions can be run without names, like we did using here...
+        window.onload = function(){ 
+            console.log('loaded page, now waiting for timeout function to run...')
+            window.setTimeout(
+                whenPageLoaded, // we can pass in a named function by not using the parentheses. If we used "whenPageLoaded()" it would think we wanted the output of the function, and not that function itself. 
+                    // For eg) if we had a function that created another function, we could call the creatorFunction(){ let createdFunction = function (){ } return createdFunction } 
+                    // window.setTimeout( creatorFunction(), 1500 )    <-- this would replace creatorFunction() with just "createdFunction"
+                1500    // the delay, counted in milliseconds ( 1000ms = 1sec )
+            )
+        }
+
+        // Order of code execution: definitions are global
+        function hoistingExample(){
+            console.log('This is the hoistingExample() function, defined at the bottom but called at the top. Instructions are run in order, but functions get checked and defined before instructions are run. This is a javascript thing, not all programming languages work this way but it is helpful to know.')
+        }
+
+        // functions can be defined as variables too...
+        let someaction = function(x = 'default value'){ return x }
+        let action = someaction('some other value')
+        console.log(someaction) // logs the actual function, the code that is the variable's definition
+        console.log(someaction()) // logs the output of the function because we called it (aka, we told it to "run", or "execute")
+        console.log(action)     // action is assigned the value that is output by running someaction() with an argument for x so that the default value defined in the function is not used
+
+        // Arrow functions, shorthand
+        let arrow = (n)=>{
+            console.log(n + ' is the argument you gave our arrow function')
+            return n
+        }
+        arrow(4)
+        // when an arrow function only has 1 argument, like in our case above, the parentheses aren't needed
+        // when an arrow function only has one line of instructions inside of it, we don't need the curly braces either
+        let arrowShorthand = n => console.log(n)
+        arrowShorthand('testing shorthand arrow functions')
+
+        // playing with timeouts and functions that build functions...
+        function timeoutEvent(){
+            let createdFunction = ()=>{
+                return console.log('This function was created by the function given and called in the arguments of the setTimeout()...')
+            }
+            return createdFunction
+        }
+        // this time we use parentheses on the function we give our timer, it will return a function to give to setTimeout() which will then be called once the timer has run out...
+        window.setTimeout(timeoutEvent(), 500)  // this one makes the timer run createdFunction()
+        window.setTimeout(timeoutEvent, 500)    // this one makes the timer run timeoutEvent() which then just outputs the variable for the function. That's why it doesn't display anything to the console, the effect of the function call just defines another function but never calls it
+        window.setTimeout( ()=>{
+            timeoutEvent()()    // since this function outputs the definition of another function, we can add a set of parentheses on the end to call that as a function as well!
+        }, 500 )
+
+        // "Currying" is the term used to describe the practise of attaching commands to outputs of other commands like calling a function returned by another function, or popping many arrays as we showed in the array example. It's important to remember that it can be done with functions as well.
+
+        function makeA(a){ return a }
+        function makeB(a, b){ return a + b }
+        function makeC(a){ return a.split(' ') }
+
+        let nestedFunctions = makeC(makeB(makeA('testing'), makeA('using the same function with different input')))    // we can pass functions into other functions, or the results of function calls into other functions...
+        console.log(nestedFunctions)
+
+        function testing(a=1, b=2, c=()=>{return a+b}){
+        	return c()
+        }
+        console.log(testing(5, 15))	// as an example of using a function for a default value while defining the function we named "testing()". It works even if no arguments are passed into the function
+        console.log(testing())		// uses default values for a, b and default function of c which computes a+b
+
+        </script>
+    </body>
+</html>
