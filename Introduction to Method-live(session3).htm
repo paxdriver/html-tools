@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+    <head><title>Frivolous Gravitas - Introduction to Javascript: Methods - Functions tied to Arrays / Objects</title>
+    <header>
+        <author>Kristopher Driver</author>
+    </header>
+    <meta name="description" content="Introductory javascript, manipulating elements" />
+    <meta charset="utf-8">
+    </head>
+    <body id='bodytag'>
+		<h1>Check out the Frivolous Gravitas Podcast!</h1>
+<p /><a href="https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg">YouTube Channel:</a> https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg
+<p /><a href="https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987">facebook:</a> https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987
+<p /><a href="https://twitter.com/FrivolousGravi1">twitter:</a> https://twitter.com/FrivolousGravi1
+<p /><a href=" https://podcasts.apple.com/us/podcast/id1545984577">iTunes / Apple podcast:</a> https://podcasts.apple.com/us/podcast/id1545984577
+<p /><a href="https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s">Google podcast:</a> https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s
+<p /><a href="https://github.com/paxdriver/html-tools">Kris's GitHub:</a>  https://github.com/paxdriver/html-tools
+<p /><a href="https://www.krisdriver.com">Kris Driver:</a> https://www.KrisDriver.com
+<hr />
+    	<ul id='mylist'>
+    		<li>item 1</li>
+    		<li>item 2 in html</li>
+	    </ul>
+    <script type='text/javascript'>
+
+	// // Note: indexes are Number types, even though javascript will work with a text string we can't do math on text strings
+//         console.log(arr_b['2'])
+//         console.log(arr_b[2])
+//         console.log(arr_b[1+1])
+//         console.log(arr_b[(1*4)-2])
+//         // But this WON'T work...
+//         console.log(arr_b['2' + 1])
+//         // ... well, technically it will if we had 22 indexes. You see, '2' + 1 converts to a string of text, and 2 + 1 in text is the text '21', not the math of adding 1 to the number 2
+//         for (let i = 0; i < 50; i++) {
+//             arr_b.push( i + ' was added by looping')
+//         }
+//         console.log(arr_b['2' + 1])
+//         // console.log(arr_b)
+
+
+
+let body = document.getElementById('bodytag')
+
+let htmllist = ['list item 1', 'list item 2', 'list item 3']
+htmllist.push('pushed this new item')
+htmllist.push('and again, pushed another new item')
+
+let my_list = document.getElementById('mylist')
+
+function get_li(){ 
+	return 'li' 
+}
+
+function html_list_item(item) {
+	let new_li = document.createElement( get_li() )
+	new_li.innerHTML = item
+	return my_list.append(new_li)
+}
+
+htmllist.map( function(val, idx, arr){ 
+	return html_list_item(val)
+ } )
+
+
+    // Remember, an array is an ordered list. You can check what value is stored by calling the array by name and specifying the index we want to look up...
+    let arr_a = [15, 33, 55, 1, 2, 63, 20]
+    let arr_b = ['text-0', 'text-1', 'text-2', 'text-3']
+    console.log(arr_a, arr_b)
+    console.log(arr_a[0], arr_b[0])
+    console.log(arr_a['2'])
+	console.log(arr_a[2+1])
+	console.log(arr_a['2'+1])
+	console.log( '2' + 2 )
+	console.log(arr_a)      // log the entire array so we can see what's stored inside of it
+	console.log(arr_a[3])   // get the value of just index 3 (remember, indexes start from zero, so '3' is the fourth index)
+	console.log(arr_b[1+1])
+	console.log(arr_b[(1*4)-2])
+	// Note: indexes are Number types, even though javascript will work with a text string we can't do math on text strings
+
+	// But this WON'T work...
+	console.log(arr_b['2' + 1])
+	// ... well, technically it will if we had 22 indexes. You see, '2' + 1 converts to a string of text, and 2 + 1 in text is the text '21', not the math of adding 1 to the number 2
+	for (let i = 0; i < 50; i++) {
+		arr_b.push( i + ' was added by looping')
+	}
+	console.log(arr_b['2' + 1])
+	
+	for (let counter = 0; counter < 50; counter=counter+1 ) {
+		// console.log(counter)
+		// arr_a.push(counter)
+	}
+
+	// Methods are functions which are built in to the data type, since there are some actions typical and capable to all variables of the same data type
+        // Built-in methods of arrays, for example, can iterate or loop through all items in the array. Since arrays are defined as storing 1 or more values, identified by their order / index, all arrays share the functionality of built-in functions that helps us use them.
+        // the most useful array methods for playing around with code if you're just starting out: push(), pop(), sort(), forEach(), filter(), map()
+        
+        // Objects are like arrays, but instead of being in order and having a unique index to identify each value, we can set a 'key' to be whatever reference we'd like to use. 
+        // One could make an Object that looks like an array by making Object keys index numbers, but that would defeat the purpose of being able to name the key/index, and we'd not be able to use the built-in array methods on our object so it wouldn't be very helpful... but we could do it if we want to!
+        // We can also define methods for ourselves to manipulate objects that we create
+        
+        let array_obj_imposter =  {'0': 'key is 0', '1': 'this key is 1', '2': 'this is key 2'}
+        console.log(array_obj_imposter)
+
+	let arr_c = []
+	let normal_obj = { 'firstName': 'Frivolous', 'lastName': 'Gravitas', 'age': 19 }
+	// console.log(normal_obj)
+
+	let chicken_text = 'chicken'
+	let ingredients = ['apples', 'onions', chicken_text]
+	// console.log(ingredients.length)
+	let instructions = ['preheat the pan', 'apply oil', 'mix ingredients together', 'remove from heat after 10 minutes']
+	let bakedChickenRecipe = { 'food': ingredients, 'guide': instructions }
+	// console.log(bakedChickenRecipe.food)
+
+	let idx_variable = 'food'
+	let sortedIngredients = bakedChickenRecipe[idx_variable]
+	// console.log(sortedIngredients)
+
+
+	// FILTER METHOD()
+	let preheat = bakedChickenRecipe['guide'].filter( (whateveryouwant)=>{
+		if( whateveryouwant.includes('heat') ){ return true }
+		else { return false }
+	})
+	console.log(preheat)
+
+	// let each = bakedChickenRecipe['food'].forEach()
+	arr_b.forEach( (value, index, array)=>{ 	// v, i, a
+		console.log(array[index] ==  value)
+
+	} )
+	for (let i = 0; i < arr_b.length; i++) {
+		console.log(arr_a[i])
+	}
+
+	let arr_d = [7,4,2,5,2,7]
+	arr_d.push('added on the end')
+
+	let nest_y = [ 'item 1', 'block 1', 'text 1', [5,3,4] ]
+	let t = nest_y
+	console.log(nest_y)
+	console.log(nest_y.pop().pop())
+	console.log(nest_y)
+
+	// as we saw above, javascript allows us to curry methods and functions together using the dot notation...
+        let y = [ [1,2,3], ['a', 'b', 'c'], [ [4,5,6], [7,8,9], [10,11,12]] ]  // an array containing arrays, containing arrays
+        t = y                          // i wanna use this later, y.pop() will change the original array
+        console.log(y)
+        console.log(y.pop().pop().pop())    // pops the array of 3 items at the end: [4,5,6] is one item, [7,8,9] is the second, [10,11,12] is the third...
+        // pops the array again, giving us an array of just [10, 11, 12]
+        // pops that final array again, giving us just 12 in the output
+
+
+	console.log(arr_d)
+	let last_value_of_array = arr_d.pop()
+	console.log(last_value_of_array)
+	console.log(arr_d)
+
+	function manyArguments() {
+		let args = arguments
+		args = Array.from(args)
+		console.log(arguments, typeof arguments)
+		console.log(args)
+	}
+
+	manyArguments('create', 'some', 'values', '10', 42)
+
+	let example1 = [3,5,2,1]
+	let test1 = example1
+	let test2 = example1
+	let test3 = [...example1]
+
+	console.log(test1)
+	console.log(test2)
+	example1.pop()
+	console.log(test1)
+	console.log(test3)
+
+	let names = ['kris', 'adam', 'cindy', 'alanna', 'jordan', 'barret', 'yuffi', 'tifa', 'cloud', 'seth', [  // I'm breaking the array into separate lines with indentations just to better visualize our array, which is inside of another array, with an object inside of that inside array 
+	        // for eg) ['a', 'b', 'c']  <- 1 dimensional    ['a', 'b', ['c', 'd', 'e'] ] <- 2 dimensional, the 3rd element is an array of values. 1 element, 3 values
+	        // if you think that looks like a table or data frame, you'd be exactly right! 
+	            'string in an array', 
+	            6, 5, 4, 2, 3, 1, 
+	            {   // this object is a single element in the array which is contained as a single element inside of the array that started with a list of names
+	                obj_complexity: 'object value', 
+	                obj_another_key: 'another object value', 
+	                a: 'objects like this', 
+	                b: 'are always unordered',
+	                c: 'so sort() will not affect it',
+	                buuuut: 'but other methods might...'
+	            }
+	        ]
+	    ]
+
+        let simple_copy_names = names   // default behaviour if just assigning a new variable to another array. It 'references' the original, without copying it.
+        // This means that when the original changes after the fact, then simple_copy_names will be affected too
+
+	let shallow_names = [...names]
+	console.log(names)
+	
+	names.forEach( v => console.log(v) )
+	console.log(names)
+	console.log(shallow_names)
+
+	let deep_names = customArrayCopy(names)
+	// console.log(simple_copy_names[10].sort())
+	// console.log(deep_names)
+	let sorted_names_changes_original = names.sort()
+
+        // notice, all the variables below were copied from 'names', which we just sorted. Now see how they point to the sorted version of the array, not what we expected
+        console.log(names)
+        console.log(simple_copy_names)
+        console.log(shallow_names)
+        console.log(deep_names)
+
+        // What if we now apply the sort() method to the 11th element of the names array (remember: indexes start at 0, so index 10 is the 11th element)? 
+            // It's an array of numbers but also contains an object.
+            // Well, if we apply sort() to our deep_names[10] array variable it shouldn't affect the order of the shallow_names or simple_copy_names
+        
+        // console.log(deep_names[10].sort())   // With this line active only this one instance is affected, because it is not a reference to anything else, we created it from scratch using our recursive function
+
+        // NOTICE: now deep_names[10], the array inside of our array, is now sorted but only for deep_names since it was copied from the original using our customArrayCopy() function
+        // if we sort the 9th element of our simple_names_copy instead, you'll see that we get unexpected changes to the array 'names[8]' aswell
+        console.log(simple_copy_names[8].sort()) // With this one, even shallow_names has changed its sort!!!
+
+
+
+	    // ONE SOLUTION: Recursive Functions Baby!
+        // Create a function that will copy an array AND disassociate all referenced elements from its original
+        // this way, the copy that we make doesn't alter the original or vice versa, because javascript can be stupid sometimes lol
+        function customArrayCopy(arr){
+            // make sure the object we're copying is the right type so we don't get errors when our function comes across an element that we're not trying to copy (a nested object or array, the 'deep' part as opposed to the 'shallow' copy, which the spread operator does nicely for us)
+            if (typeof arr !== 'object') {
+                // if the current value is not a value of type 'Array' or 'Object', then it has no 'depth' (ie: it is not a container storing multiple values, unlike objects/arrays), so we can just return it as is and exit the function call right away. No need to do anything more.
+                return arr  
+            }
+            
+            // Are we looking at an array?
+            let outputObject = Array.isArray(arr)  // will return true if it's an array, and false if it's an object, because of the if (typeof) test above there can be no other type
+		    let tmp_result
+		    // if yes, set our temporary variable to be an empty array
+		    if (outputObject) { tmp_result = [] }
+		    // if the object we're looking at is not an array, then it must be an object since we're running this code from inside an if(typeof )
+		    else { tmp_result = {} }
+
+                // equivalently, we could use an inline if statement like this... variable = (true/false) ? assign_this_value_if_true : assign_this_if_false
+            let result = (outputObject) ? [] : {} // either make this variable an empty array if the function's input is an array type, or object if it's an object type
+            // remember, any other type (string, number, etc.) will have already kicked out of the function by the return statement above.
+
+            let current_value               // we're going to use this to call this function again on every value in an array or object
+            for (key in arr) {
+                current_value = arr[key]    // whatever the current value is, number, string, array, object, boolean; use that to run this function again before assigning to our result variable. We do this to make sure that all nested objects keep getting shallow-ly copied rather than getting lost in shallow copy's soup as when using [...spread]
+                // recursively calling this same function to perform the data type check again to the nested elements, and their nested elements, etc, etc
+                result[key] = customArrayCopy(current_value) // assigning a key/index the corresponding value from the original array/object
+                // this is like saying "step through every element and run this function. this function returns the input unchanged unless it is an array or an object..."
+                // "... if the value turns out to be an array or an object, loop through each key/index and run this function on each of those values - recursively"
+            }
+            // we're going to use this function to assign a value, so we need to return the final result
+            return result
+        }
+
+// REAL WORLD SOLUTION: just use this --> my_copy = JSON.parse(JSON.stringify(original_Object))
+			// WHOA! way too much hassle and complexity for a simple thing like copying an array! There must be a better way!
+			// Well, you're in luck, there is. The standard practise is to call a built-in few functions instead to accomplish all of this on a single line
+			let originalArray = [4,2,1,3]
+			let best_method_for_copying_arrays = JSON.parse(JSON.stringify(originalArray))
+			console.log(originalArray)
+			console.log(best_method_for_copying_arrays)
+			console.log(originalArray.sort())
+		
+	let simpleway = JSON.parse(JSON.stringify(names))
+	console.log(simpleway.sort().reverse())
+	console.log(names)
+
+	// Live-session version of the function above. Only difference is some variable names are different from the function written above.
+	// I want to make a function that copies not just references, another array and ALL of its sub-elements
+	// function customArrayCopy(input) {
+	// 	if (typeof input !== 'object') { return input }
+	// 	let outputObject = Array.isArray(input)
+	// 	let tmp_result
+
+	// 	if (outputObject) tmp_result = []
+	// 	else { tmp_result = {} }
+
+	// 	let result = (outputObject) ? [] : {}
+	// 	let current_value
+
+	// 	for (key in input) {
+	// 		current_value = input[key]
+	// 		result[key] = customArrayCopy(current_value)
+	// 	}
+	// 	return result
+	// }
+	
+
+
+
+
+
+
+
+
+    </script>
+
+
+    </body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+    <head><title>Frivolous Gravitas - Introduction to Javascript: Methods - Functions tied to Arrays / Objects</title>
+    <header>
+        <author>Kristopher Driver</author>
+    </header>
+    <meta name="description" content="Introductory javascript, manipulating elements" />
+    <meta charset="utf-8">
+    </head>
+    <body>
+        <h1>Check out the Frivolous Gravitas Podcast!</h1>
+		<h1>Check out the Frivolous Gravitas Podcast!</h1>
+<p /><a href="https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg">YouTube Channel:</a> https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg
+<p /><a href="https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987">facebook:</a> https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987
+<p /><a href="https://twitter.com/FrivolousGravi1">twitter:</a> https://twitter.com/FrivolousGravi1
+<p /><a href=" https://podcasts.apple.com/us/podcast/id1545984577">iTunes / Apple podcast:</a> https://podcasts.apple.com/us/podcast/id1545984577
+<p /><a href="https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s">Google podcast:</a> https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s
+<p /><a href="https://github.com/paxdriver/html-tools">Kris's GitHub:</a>  https://github.com/paxdriver/html-tools
+<p /><a href="https://www.krisdriver.com">Kris Driver:</a> https://www.KrisDriver.com
+<hr />
+
+    <script type='text/javascript'>
+ 
+        let body = document.getElementsByTagName('body')[0]
+
+        // how to get really confused by arrays, and how to avoid the confusion
+        let example1 = [3, 5, 2, 1]
+        let test1 = example1
+        let test2 = example1
+        let test3 = [...example1]           // using the spread operator, the ellipsis (three periods: '...'), we can create a new instance instead of a reference - but it's a shallow new instance, so nested arrays if they exist will still point to the original and be prone to unexpected behaviours if that original is changed at all.
+        // console.log(example1.sort())     // if we apply sort() method, it changes all of our references to that same array
+        console.log(test2.sort())        // even if we apply sort() method to other references, it changes them all
+        console.log(example1)
+        console.log(test1)
+        console.log(test2)
+        example1.pop()          // notice, we do get the expected outputs here, since the console is logged before the removal of the last element occurs
+        console.log(example1)   // and still, that has no effect on the variable 'test3' since it was created using a shallow instance anyway
+        console.log(test2)      // but test2 has been affected by the pop() method call on example1, because it was created as a reference and not a shallow or deep copy of the original
+        
+        
+        // So how do we use array methods that change the original without affecting all of our references to it?
+// let test3 = [...example1]           // using the new spread operator ellipsis (three periods: '...') we can create a new instance
+        console.log(test3)                  // but we have to use it before the sort() method is used, or else we wind up with the same problem as before
+
+        // ----------------------------------------------------------------------------------------------
+        // Spread operator words with shallow copies just fine, but if there's an array inside of the original array, we'll end up with the same problem as before if an array is altered after we assign a new variable with its values.
+        let names = ['kris', 'adam', 'cindy', 'alanna', 'jordan', 'barret', 'yuffi', 'tifa', 'cloud', 'seth', 
+                    [   // I'm breaking the array into separate lines with indentations just to better visualize our array, which is inside of another array, with an object inside of that inside array 
+                    // for eg) ['a', 'b', 'c']  <- 1 dimensional    ['a', 'b', ['c', 'd', 'e'] ] <- 2 dimensional, the 3rd element is an array of values. 1 element, 3 values
+                    // if you think that looks like a table or data frame, you'd be exactly right! 
+                        'string in an array', 
+                        6, 5, 4, 2, 3, 1, 
+                        {   // this object is a single element in the array which is contained as a single element inside of the array that started with a list of names
+                            obj_complexity: 'object value', 
+                            obj_another_key: 'another object value', 
+                            a: 'objects like this', 
+                            b: 'are always unordered',
+                            c: 'so sort() will not affect it',
+                            buuuut: 'but other methods might...'
+                        }
+                    ]
+                ]
+
+        let simple_copy_names = names   // default behaviour if just assigning a new variable to another array. It 'references' the original, without copying it.
+        // This means that when the original changes after the fact, then simple_copy_names will be affected too
+
+        let shallow_names = [...names]   // using the spread operator for shallow array copies, but nested items are just references, not copies!!
+        console.log(names)     
+        names.forEach( (v,i,a)=>{ console.log(v) })     // logs each value one at a time. Remember: Arrays are indexed and ordered lists, but objects are inherently unordered.
+
+        // we're going to do a deep copy of an array so that the original array doesn't affect our copy if it changes later. Because javascript is weird like that..
+        let deep_names = customArrayCopy(names)
+        let sorted_names_changes_original = names.sort()
+
+        // notice, all the variables below were copied from 'names', which we just sorted. Now see how they point to the sorted version of the array, not what we expected
+        console.log(names)
+        console.log(simple_copy_names)
+        console.log(shallow_names)
+        console.log(deep_names)
+
+        // What if we now apply the sort() method to the 11th element of the names array (remember: indexes start at 0, so index 10 is the 11th element)? 
+            // It's an array of numbers but also contains an object.
+            // Well, if we apply sort() to our deep_names[10] array variable it shouldn't affect the order of the shallow_names or simple_copy_names
+        
+        // console.log(deep_names[10].sort())   // With this line active only this one instance is affected, because it is not a reference to anything else, we created it from scratch using our recursive function
+
+        // NOTICE: now deep_names[10], the array inside of our array, is now sorted but only for deep_names since it was copied from the original using our customArrayCopy() function
+        // if we sort the 9th element of our simple_names_copy instead, you'll see that we get unexpected changes to the array 'names[8]' aswell
+        console.log(simple_copy_names[8].sort()) // With this one, even shallow_names has changed its sort!!!
+
+        // ONE SOLUTION: Recursive Functions Baby!
+        // Create a function that will copy an array AND disassociate all referenced elements from its original
+        // this way, the copy that we make doesn't alter the original or vice versa, because javascript can be stupid sometimes lol
+        function customArrayCopy(arr){
+            // make sure the object we're copying is the right type so we don't get errors when our function comes across an element that we're not trying to copy (a nested object or array, the 'deep' part as opposed to the 'shallow' copy, which the spread operator does nicely for us)
+            if (typeof arr !== 'object') {
+                // if the current value is not a value of type 'Array' or 'Object', then it has no 'depth' (ie: it is not a container storing multiple values, unlike objects/arrays), so we can just return it as is and exit the function call right away. No need to do anything more.
+                return arr  
+            }
+            
+            // Are we looking at an array?
+            let outputObject = Array.isArray(arr)  // will return true if it's an array, and false if it's an object, because of the if (typeof) test above there can be no other type
+		    let tmp_result
+		    // if yes, set our temporary variable to be an empty array
+		    if (outputObject) { tmp_result = [] }
+		    // if the object we're looking at is not an array, then it must be an object since we're running this code from inside an if(typeof )
+		    else { tmp_result = {} }
+
+                // equivalently, we could use an inline if statement like this... variable = (true/false) ? assign_this_value_if_true : assign_this_if_false
+            let result = (outputObject) ? [] : {} // either make this variable an empty array if the function's input is an array type, or object if it's an object type
+            // remember, any other type (string, number, etc.) will have already kicked out of the function by the return statement above.
+
+            let current_value               // we're going to use this to call this function again on every value in an array or object
+            for (key in arr) {
+                current_value = arr[key]    // whatever the current value is, number, string, array, object, boolean; use that to run this function again before assigning to our result variable. We do this to make sure that all nested objects keep getting shallow-ly copied rather than getting lost in shallow copy's soup as when using [...spread]
+                // recursively calling this same function to perform the data type check again to the nested elements, and their nested elements, etc, etc
+                result[key] = customArrayCopy(current_value) // assigning a key/index the corresponding value from the original array/object
+                // this is like saying "step through every element and run this function. this function returns the input unchanged unless it is an array or an object..."
+                // "... if the value turns out to be an array or an object, loop through each key/index and run this function on each of those values - recursively"
+            }
+            // we're going to use this function to assign a value, so we need to return the final result
+            return result
+        }
+
+        // REAL WORLD SOLUTION: just use this --> my_copy = JSON.parse(JSON.stringify(original_Object))
+        // WHOA! way too much hassle and complexity for a simple thing like copying an array! There must be a better way!
+        // Well, you're in luck, there is. The standard practise is to call a built-in few functions instead to accomplish all of this on a single line
+        let originalArray = [4,2,1,3]
+        let best_method_for_copying_arrays = JSON.parse(JSON.stringify(originalArray))
+        console.log(originalArray)
+        console.log(best_method_for_copying_arrays)
+        console.log(originalArray.sort())
+
+
+        // Remember, an array is an ordered list. You can check what value is stored by calling the array by name and specifying the index we want to look up...
+
+        let arr_a = [15, 33, 55, 1, 2, 63, 20]
+        let arr_b = ['text-0', 'text-1', 'text-2', 'text-3']
+        console.log(arr_a)      // log the entire array so we can see what's stored inside of it
+        console.log(arr_a[3])   // get the value of just index 3 (remember, indexes start from zero, so '3' is the fourth index)
+        console.log(arr_a['1'])   
+        
+        // Note: indexes are Number types, even though javascript will work with a text string we can't do math on text strings
+        console.log(arr_b['2'])
+        console.log(arr_b[2])
+        console.log(arr_b[1+1])
+        console.log(arr_b[(1*4)-2])
+        // But this WON'T work...
+        console.log(arr_b['2' + 1])
+        // ... well, technically it will if we had 22 indexes. You see, '2' + 1 converts to a string of text, and 2 + 1 in text is the text '21', not the math of adding 1 to the number 2
+        for (let i = 0; i < 50; i++) {
+            arr_b.push( i + ' was added by looping')
+        }
+        console.log(arr_b['2' + 1])
+        // console.log(arr_b)
+        
+        
+        // Methods are functions which are built in to the data type, since there are some actions typical and capable to all variables of the same data type
+        // Built-in methods of arrays, for example, can iterate or loop through all items in the array. Since arrays are defined as storing 1 or more values, identified by their order / index, all arrays share the functionality of built-in functions that helps us use them.
+        // the most useful array methods for playing around with code if you're just starting out: push(), pop(), sort(), forEach(), filter(), map()
+        
+        // Objects are like arrays, but instead of being in order and having a unique index to identify each value, we can set a 'key' to be whatever reference we'd like to use. 
+        // One could make an Object that looks like an array by making Object keys index numbers, but that would defeat the purpose of being able to name the key/index, and we'd not be able to use the built-in array methods on our object so it wouldn't be very helpful... but we could do it if we want to!
+        // We can also define methods for ourselves to manipulate objects that we create
+        
+        let array_obj_imposter =  {'0': 'key is 0', '1': 'this key is 1', '2': 'this is key 2'}
+        console.log(array_obj_imposter)
+        let normal_obj = {'firstName': 'Frivolous', 'lastName': 'Gravitas', 'Age': '19'}
+        console.log(normal_obj)
+        // we can check the value of an object at any specific key index by using similar notation to the array, but note: the key is not a number it's a string of text, unlike an array which is indexed by sequential numbers
+        console.log(normal_obj['firstName'])
+        
+        // Arrays and Objects can both contain other arrays and objects
+        let ingredients = ['apples', 'onions', 'chicken']
+        let instructions = ['preheat the pan', 'apply oil', 'mix ingredients in the pan', 'remove from heat after 10 minutes']
+        let bakedChickenRecipe = { 'food': ingredients, 'guide': instructions }
+        console.log(bakedChickenRecipe)
+        
+        // Array Methods
+        let sortedIngredients = bakedChickenRecipe['food'].sort()
+        console.log(sortedIngredients)  // sorts the array of ingredients so that chicken comes second
+        console.log([4,3,2,1].sort())   // sorts an array by numbers in the same way, even if the array is not defined with a name the square brackets means it's still an array data type
+        console.log(bakedChickenRecipe['food']) // the sort method actually changes the array of the original, it doesn't just give us the response
+        
+        // not all methods actually change the array that called it, let's look at some more useful methods on arrays...
+        let preheat = bakedChickenRecipe['guide'].filter( x => { if (x.includes('preheat')) return true } )
+        console.log(preheat)
+        // filter() takes in a function as a parameter (in other words it requires a single function as its 'arguments'). This can be predefined and called by name or simply written anonymously inside of the filter method's parentheses
+        // filter will iterate through all items in the array and check if the function returns true or false. If true, then that item is added to the output.
+        // see how if our function returns true no matter what then none of the list's items get filtered out
+        let alwaystrue = arr_a.filter( function() {return true})
+        let alwaysfalse = arr_a.filter( function() {return false})
+        console.log(alwaystrue)
+        console.log(alwaysfalse)
+        // NOTE: filter() method will create a new array and not alter or change the original array, unlike sort() did
+        
+        // In the example above, preheat was defined to be the output of the filter() method on the 'instructions' array inside of the 'bakedChickenRecipe' object.
+        // To our true/false check used another array method called "includes()" to check if the current item contained the word 'preheat' in its value
+        // The includes() method does not alter the original array either
+        
+        let substring = preheat.includes('heat')    //  checks if the word 'heat' is contained inside the array value, which in this case preheat[0] is 'preheat', so the substring 'heat' is in there and the method returns true.
+        console.log(substring)    // The reason this output is 'true' and not the instruction 'preheat the pan' is because includes() returns true or false, and filter requires a true or false to know whether to include or exclude each item in the array that called the filter() method.
+        
+        // So methods are functions that apply themselves to the array that called them using dot notation
+        // Arrays are ordered lists, Objects are unordered lists with custom keys rather than numbered indexes
+        // Objects can contain other objects as values, and Arrays can contain other arrays as values
+        // Objects can contain other arrays, and Arrays can contain other Objects
+        
+        
+        // Object methods are handy too, for instance, checking if an object has a particular key
+        console.log(Object.keys(bakedChickenRecipe).includes('food'))
+        
+        function manyArguments() {
+            // arguments is a reserved keyword of the javascript language, as opposed to being of type array/object/function. To use the keyword 'arguments' it's best to convert it into an array first so that we have access to all of the built-in methods that arrays get to enjoy
+            console.log(arguments)  // Symbol, not an array. It has no length, or push() or pop() methods
+            let args = arguments
+            args = Array.from(args)
+            console.log(args)       // now that list of arguments can be manipulated like any normal arround would
+            args.push('pushing a new value on to the end of whatever arguments were provided when calling this function')
+            console.log(args)       // now that list of arguments can be manipulated like any normal arround would
+        }
+        
+        manyArguments('first', 'second', 'third', 'fourth', 'infinitely many', 1, 2, 3, 4, 5, 6)
+        
+        // Practise with some of the other methods...
+        
+        let z = [1,2,3,4,5,6,7]
+        let txt = 'some text'
+        let moretxt = 'more text'
+        z.push(txt)
+        console.log(z)
+        
+        let lastitem = z.pop()      // pop removes the last index from the array and returns it. You can call pop() just to remove the last item, it still returns the value but if the code doesn't assign that value to a variable then it just gets lost in the ether
+        console.log(lastitem)
+        console.log(z)
+        console.log(z.pop())
+        console.log(z)
+        
+        // as we saw above, javascript allows us to curry methods and functions together using the dot notation...
+        let y = [ [1,2,3], ['a', 'b', 'c'], [[4,5,6], [7,8,9], [10,11,12]] ]  // an array containing arrays, containing arrays
+        let t = y                           // i wanna use this later, y.pop() will change the original array
+        console.log(y)
+        console.log(y.pop().pop().pop())    // pops the array of 3 items at the end: [4,5,6] is one item, [7,8,9] is the second, [10,11,12] is the third...
+        // pops the array again, giving us an array of just [10, 11, 12]
+        // pops that final array again, giving us just 12 in the output
+        let keyvaluepairs = [ ['firstKey', 'first value of the key'], ['secondKey', 'value of the second key'], ['thirdKey', 'remember that keys can not use spaces, but values can be anything'] ] // only reads indexes 0 for key and 1 for value, if you have more than 1 value you need to replace the string value with an array of values.
+        let obj = Object.fromEntries(keyvaluepairs)     // this method helps us build objects out of arrays, just like we built an array out of the arguments object using Array.from()
+        console.log(obj)
+        let witharrays = [ ['keyA', ['array', 'of', 'values']], ['keyB', 'value b as just a string'] ]
+        let obj2 = Object.fromEntries(witharrays)
+        console.log(obj2)
+        
+        // map() -> this method takes a function inside of its parentheses, similar to filter, but instead of only returning items of the array that the function evaluates to true, it simply spits out every line item using the same function on each array item.
+        // It may not be immediately obvious how this is useful, but consider make html appear on the page for each item of the list...
+        
+        let list_element = document.createElement('ol')
+        function html_list_item(item) {
+            let new_li = document.createElement('li')
+            new_li.innerHTML = item
+            return list_element.appendChild(new_li)
+        }
+        
+        let htmllist = ['list item 1', 'list item 2', 'list item 3']
+        htmllist.push('pushed this new item')
+        htmllist.push('and again, pushed another new item')
+        htmllist.map( function(value, index, array) {
+            html_list_item(value)   // as map iterates through all items in the array, it feeds our function that value, and that function create an html element and appends it the html tag <ol></ol> which we called list_element. We then append that ordered html list to the body of the web page...
+        } )
+        
+        // now we can add/remove items more quickly and easily by using our other array methods...
+        let anotherlist = htmllist
+        anotherlist.map( x => html_list_item(x) )   // another way of saying the same thing is using arrow functions, the shorthand version
+
+        let position = {x: function(a='enter a number') { return a*a**4 },  // star-star is how we do exponentiation (power of 4, in this example)
+                y: 140,
+                z: 40
+                }
+
+        console.log(position)
+        console.log(position.x(150))
+        
+        body.appendChild(list_element)
+     
+        </script>
+    </body>
+    </html>
