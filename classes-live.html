@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+    <head><title>Frivolous Gravitas - Introduction to Javascript: Classes - The Object-Building Factory (and a Generator too!)</title>
+    <header>
+        <author>Kristopher Driver</author>
+    </header>
+    <meta name="description" content="Introductory javascript, manipulating elements" />
+    <meta charset="utf-8">
+    </head>
+    <body>
+
+		<h1>Check out the Frivolous Gravitas Podcast!</h1>
+<p /><a href="https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg">YouTube Channel:</a> https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg
+<p /><a href="https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987">facebook:</a> https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987
+<p /><a href="https://twitter.com/FrivolousGravi1">twitter:</a> https://twitter.com/FrivolousGravi1
+<p /><a href=" https://podcasts.apple.com/us/podcast/id1545984577">iTunes / Apple podcast:</a> https://podcasts.apple.com/us/podcast/id1545984577
+<p /><a href="https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s">Google podcast:</a> https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s
+<p /><a href="https://github.com/paxdriver/html-tools">Kris's GitHub:</a>  https://github.com/paxdriver/html-tools
+<p /><a href="https://www.krisdriver.com">Kris Driver:</a> https://www.KrisDriver.com
+<hr />
+
+
+    <script type='text/javascript'>
+  	// console.log('testing start of script')
+
+  	function makeObject(x, y, z, rgba) {
+  		return {
+  			'xposition': x,
+  			'yposition': y,
+  			'zposition': z,	// this is a single value
+  			'color': rgba	// this is an array
+  		}
+  	}
+
+  	let my_new_object = new makeObject(5, 7, 8, [255, 255, 255, 0.75])
+  	// console.log(my_new_object)
+
+  	class MakeClassObject {
+
+  		constructor(x, y, z, rgba) {
+  			this.xposition = x
+  			this.yposition = y
+  			this.zposition = z
+  			this.color = rgba
+  		}
+  		changeBackground(){
+  			let colorvector = this.color
+  			let x = colorvector[0]
+  			let y = colorvector[1]
+  			let z = colorvector[2]
+  			let alpha = colorvector[3]		// this value is an array
+
+  			let tmp_style = `rgba( ${x}, ${y}, ${z}, ${alpha} )`	// stylesheets, string template literals
+  			colorvector.forEach( val => {
+  				if (val < 3) {
+  					updateColor(val)
+  				}
+  			} ) 
+  			this.color = [ round(x/1.5), round(y/2), round(z*3)/4, (alpha) ]
+  			let tmp_fun = document.getElementsByTagName('body')
+  			return tmp_fun[tmp_fun.length-1].style.backgroundColor = tmp_style
+  		}
+  	}
+
+  	let classObject = new MakeClassObject(4,5,7,[255,200,155, 0.7])
+  	classObject.changeBackground()
+
+  	function updateColor(colorValue) {
+  		if (colorValue < 20) { return colorValue + 200 }
+  		else { return colorValue } 
+  	}
+
+  	function round(x){
+  		return Math.round(x)
+  	}
+
+
+  	function* emp_id_generator(){
+  		let id = 0
+  		while (true){
+  			yield ++id
+  		}
+  	}
+
+  	let some_ids = emp_id_generator()
+
+  	const getId = ()=>{
+  		let tmp = new String(some_ids.next().value)
+  		let output = '0'
+  		let idsize = 10
+  		for (let lem = tmp.length; lem < idsize; lem++) {
+  			output+='0'
+  		}
+  		return output
+  	}
+
+
+
+// ------------------- OUR EXAMPLE STARTS HERE --------------
+
+  	class Person {
+  		type = 'Persons Object'
+  		constructor( firstname, lastname, age, sex, location ){
+  			this.fname = firstname
+  			this.lname = lastname
+  			this.age = age
+  			this.sex = sex
+  			this.loc = location
+  		}
+  		
+  		get fullName(){
+  			return this.computeName()
+  		}
+  		computeName(){
+  			return this.fname + ' ' + this.lname
+  		}
+  		// comment to explain functionality
+  		get info(){
+  			return this.printInfo()
+  		}// END getter
+  		printInfo(){
+  			return [
+  				this.fname,
+  				this.lname,
+  				this.sex,
+  				this.loc
+  				]
+  		}// END method
+  	}
+
+  	let Kris = new Person( 'Kris', 'Driver', 35, 'm', 'Canada')
+
+  	let arr_c = new Array('array item 1', 'array item 2', 'array item 3', 'array item 4' )
+  	let arr_d = new Array( ['array item 1', 'array item 2', 'array item 3', 'and so on...'] )
+  	// console.log(arr_c, arr_d)
+  	let arrayBlankLength = new Array(26)
+
+
+  	class Classroom {
+  		constructor(name){
+  			this.subject = name
+  			this.students = []
+  		}
+  		addStudent(student){
+  			if(this.students.includes(student)){
+  				return console.error('That student is already in this classroom')
+  			}
+  			else {
+  				return this.students.push(student)
+  			}
+
+  		}
+  		removeStudent(student){
+  			if(!this.students.includes(student)) {
+  				return console.error("Can't remove that student, they are not in the class")
+  			}
+  			else {
+  				let idx = this.students.indexOf(student)
+  				this.students.splice(idx, 1, 'replace it with this')
+  			}
+  		}
+  	}
+
+  	let Janice = new Person('Janice', 'Leigh', 21, 'f', 'USA')
+    let Jordan = new Person('Jordan', 'Roy', 530, 'm', 'Canada')
+    let Karen = new Person('Karen', 'Daupe', 81, 'f', 'Canada')
+
+    let SocialStudies = new Classroom('Social Studies')
+
+ //    SocialStudies.addStudent(Janice)
+ //    console.log(SocialStudies)
+	// SocialStudies.removeStudent(Janice)
+	// console.log(SocialStudies)
+
+
+	SocialStudies.addStudent(Janice)
+	SocialStudies.addStudent(Kris)
+	SocialStudies.addStudent(Jordan)
+	SocialStudies.addStudent(Karen)
+	SocialStudies.addStudent(new Person('Megan', 'Diva', 18, 'f', 'Outer Space'))
+	SocialStudies.removeStudent(Karen)
+	let list_women = SocialStudies.students.filter(student=>(student.sex == 'f') ? true : false)
+	// console.log(list_women)
+
+
+	SocialStudies.addStudent(Karen)
+
+	let old = SocialStudies.students.filter( function(studs) {
+		if (studs.age > 80) {
+			return true
+		}
+		else {
+			return false
+		}
+	} )
+	// console.log(old)
+
+
+
+
+	let Company = class {
+		constructor(name) {
+			this.name = (name) ? name : 'no name provided' // inline if statement
+			this.employees = {}
+			this.positions = ['admin', 'sales', 'executive']
+		}
+	}
+
+	let ABC = new Company('ABC company') // x = { key: value } 
+	
+	class Holiday_object{
+		constructor(a,b){
+			this.daysTaken = a
+			this.totalDays = b
+		}
+		get daysRemaining(){
+			return parseInt(this.calcDaysRemaining())
+		}
+		calcDaysRemaining(){
+			let tmp = (this.totalDays - this.daysTaken) + ' days of holiday remaining'
+			return tmp
+		}
+	}
+
+
+	// let emp_id_9919029 = new Employees(new Person(...), 20, {})
+	class Employees extends Company{
+		constructor(persona, pay, holidayObject, hiredOnDate, id) {
+			super()
+			this.person = (persona) ? persona : 'No person object data found...'
+			this.salary = (typeof pay == 'number') ? pay : parseInt(pay)
+			this.holidays = holidayObject
+			this.startDate = hiredOnDate
+			this.id = id
+		}
+		get vacation(){
+			return this.calcVacation()
+		}
+		calcVacation(){
+			return this.holidays.daysRemaining
+		}
+	}
+
+	// Persons: Kris Janice Jordan Karen Megan
+
+// Make a fake Company...
+        let test_company = new Company('Kris Korp')
+        // Make a fake Person
+        let test_Person = new Person('Alice', 'Bob', 69, 'f', 'Canada')
+
+        // Create an object our class is expecting for each person added to employees array object
+        // let test_holidays = {
+        //     totalDays: 14,
+        //     daysTaken: 4
+        // }
+        // Make a holiday object, ( vacation_days_taken, vacations_Days_Remaining ) <===> (a, b) in our object constructor
+        let test_holidays = new Holiday_object(4, 14)   // much cleaner, much easier to read, much easier to automate and data entry. Fewer risk of typos too!!
+
+        let test_employee = new Employees(test_Person, 25, test_holidays, 'April 1 2021', getId())
+        test_company.employees[test_employee.person.fullName] = test_employee 
+        
+        // so we got it the long way, let's do it a bit better as we add more data to our project
+        let Andy_Rueben = new Person('Andrew', 'Reuben', 25, 'm', 'Germany')
+        let Lana_Dahlio = new Person('Lana', 'Dahlio', 42, 'f', 'Britain')
+        let test_employee2 = new Employees(Andy_Rueben, 32, new Holiday_object(7,10), 'March 23, 2021', getId())
+        // let test_employee2 = new Employee(Andy_Rueben, 32, { totalDays: 7, daysTaken: 0 }, 'March 23, 2021')
+        let test_employee3 = new Employees(Lana_Dahlio, 28, { totalDays: 27, daysTaken: 10 }, 'May 3, 2021',  getId())
+        test_company.employees[test_employee2.person.fullName] = test_employee2
+        test_company.employees[test_employee3.person.fullName] = test_employee3
+        let test_employee4 = new Employees(new Person('Frivolous', 'Gravitas', 35, 'M', 'CANADA'), 50, { totalDays: 30, daysTaken: "15" }, 'November 11, 2021',  getId())   // note, gonna play with the cases and string value of "15" in the holidays object
+        test_company.employees[test_employee4.person.fullName] = test_employee4
+        // console.log(test_employee4)
+        // console.log(test_company.employees)
+        // console.log(test_employee2.salary)
+        // console.log(test_employee2.vacation)
+        // console.log(test_employee2.person.fullName)
+        // console.log(test_company.employees.Lana_Dahlio.vacation())
+        // console.log(test_company.employees['Alice Bob'])
+        console.log(test_company)
+        for (let n in test_company.employees) {
+            console.log(test_company.employees[n].person.fullName)
+            console.log(test_company.employees[n].person.info)
+        }
+
+
+
+
+     /* Our data structure looks like this:
+        1) Persons have properties like name and age. 
+        2) Employees are Persons with pay and holidays. 
+        3) Company has Employees
+        Company
+        -company name
+        -company inception
+            Employees ----------------------
+                ^Unique Person
+                    displayInformation()
+                    -firstName
+                    -lastName
+                    -age
+                -salary
+                    calculatePay()
+                    -salary rate
+                    -hours worked
+                -holidays
+                    calculateVacationDays()
+                    -vacation days taken
+                    -vacation days total
+            --------------------    
+                ^Unique Person
+                    displayInformation()
+                    -firstName
+                    -lastName
+                    -age
+                -salary
+                    calculatePay()
+                    -salary rate
+                    -hours worked
+                -holidays
+                    calculateVacationDays()
+                    -vacation days taken
+                    -vacation days total
+            --------------------    
+                ^Unique Person
+                    displayInformation()
+                    -firstName
+                    -lastName
+                    -age
+                -salary
+                    calculatePay()
+                    -salary rate
+                    -hours worked
+                -holidays
+                    calculateVacationDays()
+                    -vacation days taken
+                    -vacation days total
+DATABASES                    
+We have a Person class, an Employee class which gives us employment info of each Person, and a Company class which has many employees
+This can be useful for creating data bases, or updating or displaying information stored in a database. Remember, JSON means "JavaScript Object Notation"
+That means that building objects with classes is a great way to work with databases since databases and CSV's and table data can be easily converted to and from JSON
+
+        */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </script>
+    </body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+    <head><title>Frivolous Gravitas - Introduction to Javascript: Classes - The Object-Building Factory (and a Generator too!)</title>
+    <header>
+        <author>Kristopher Driver</author>
+    </header>
+    <meta name="description" content="Introductory javascript, manipulating elements" />
+    <meta charset="utf-8">
+    </head>
+    <body>
+        <h1>Check out the Frivolous Gravitas Podcast!</h1>
+        <p /><a href="https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg">YouTube Channel:</a> https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg
+        <p /><a href="https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987">facebook:</a> https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987
+        <p /><a href="https://twitter.com/FrivolousGravi1">twitter:</a> https://twitter.com/FrivolousGravi1
+        <p /><a href=" https://podcasts.apple.com/us/podcast/id1545984577">iTunes / Apple podcast:</a> https://podcasts.apple.com/us/podcast/id1545984577
+        <p /><a href="https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s">Google podcast:</a> https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s
+        <p /><a href="https://github.com/paxdriver/html-tools">Kris's GitHub:</a>  https://github.com/paxdriver/html-tools
+        <p /><a href="https://www.krisdriver.com">Kris Driver:</a> https://www.KrisDriver.com
+        <hr />
+
+    <script type='text/javascript'>
+
+        function makeObject(x, y, z, rgba) {
+            return {
+                'xposition' : x,
+                'yposition' : y,
+                'zposition' : z,
+                'color' : rgba,
+                // 'meth': function (x='method default value'){     // just to show that we can make functions that do the same thign as class
+                //     console.log(x)
+                //     return x
+                // }
+            }
+        }
+        let my_new_object = makeObject(5, 7, 8, [255, 155, 105, 0.75])
+        console.log(my_new_object)
+
+        class MakeClassObject {
+            constructor(x, y, z, rgba) {
+                this.xposition = x
+                this.yposition = y
+                this.zposition = z
+                this.color = rgba
+            }
+            changeBackground(){
+                let colorvector = this.color
+                // let x = updateColor(colorvector[0])
+                // let y = updateColor(colorvector[1])
+                // let z = updateColor(colorvector[2])
+                let x = colorvector[0]
+                let y = colorvector[1]
+                let z = colorvector[2]
+                let alpha = colorvector[3]
+                // console.log(this.color)
+                // updateColor(x, y, z)
+                let tmp_style = `rgb( ${x}, ${y}, ${z}, ${alpha} )`     // example of css defined via string template literal. I'm make a separate lesson for just stylesheets and css and stuff
+                this.color = [(x/1.5), (y/2), (z*3)/4, (alpha-0,1)]       // just for play, make it so if we keep calling this method the background will keep changing colors
+                return document.getElementsByTagName('body')[0].style.backgroundColor = tmp_style
+            }
+        }
+        // function updateColor(colorValue){
+        //     if (colorValue < 20) { return colorValue + 200}
+        //     else { return colorValue}
+        // }
+
+        let classObject = new MakeClassObject(4, 5, 7, [255,200, 155, 0.7])
+        classObject.changeBackground()  //  WRITE THIS IN THE CONSOLE AND THE COLOR KEEPS CHANGING
+
+        // a class is a way of creating objects which abide by a template, so that managing many similar objects is easy since they will share the same keys we can write code that looks for a specific key no matter how many Persons we create they will all have the same structure
+        class Person {
+            constructor(firstName, lastName, age, sex, location){
+                this.fname = (firstName) ? firstName : 'error'
+                this.lname = (lastName) ? lastName : 'something went wrong'
+                this.age = age
+                this.sex = sex
+                this.loc = location
+            }
+            get fullName(){     // CLASS SPECIFIC!!!
+                return this.calcName()
+            }
+            calcName(){
+                return this.fname + ' ' + this.lname
+            }
+            // Methods can be built in to classes, so that every object created will have the same functionality, just like all arrays can use built-in array methods, we can define our own methods for our object generators to help make our data objects work the same way.
+            get info(){
+                return this.printInfo()
+            } // the downside of this approach is that this function is created as a copy and attached to every single object it creates. This can consume memory when working with many objects
+            printInfo(){
+                return [this.fname,
+                    this.lname,
+                    this.age,
+                    this.sex,
+                    this.loc
+                ]
+            }
+        }
+
+        // using classes aka Generators we use variable starting with capital letter as convention to help readability. Seeing a variable with a capital letter helps us know immediately that this object was created by a template
+        let Kris = new Person('Kris', 'Driver', 35, 'm', 'Canada')  // 'new' is a necessary keyword to prefix a generator. We can also create arrays using new Array()
+        console.log(Kris)
+        console.log(Kris['age'])    // same as dot notation ->  console.log(Kris.age)
+        Kris.printInfo()
+        // the 'new' keyword, remember not to use it as a variable name or you'll get some really confusing error messages. Keep your variable names unique!!!
+        let arr_c = new Array('array item 1', 'item 2', 'and so on...')
+        let arr_d = new Array(['array item 1', 'item 2', 'and so on...'])   // or create an array of only one item, and that one item is an array of 3 items, for example
+        console.log(arr_c)
+        console.log(arr_d)
+        let lengthArray = new Array(25) // we can also create an empty array of a specified size using the array constructor
+        lengthArray.push('added element to constructor-made array')
+        console.log(lengthArray)
+        
+        // Let's see how we can use class practically
+        class Classroom {
+            constructor(name){
+                this.subject = name    // math, phys ed, science, etc
+                this.students = []  // a list of Persons enrolled in the class
+            }
+            // we need a way to add students to a course we're teaching...
+            addStudent(person){
+                if (this.students.includes(person)) { 
+                    return console.log('That student is already enrolled in this classroom!')// do nothing if it's already in the list... 
+                }
+                else {  // otherwise we want to add that person to this classroom
+                    return this.students.push(person)
+                }
+            }
+            // we should also be able to remove students who drop out...
+            removeStudent(person){
+                if (this.students.includes(person)) {
+                    let idx = this.students.indexOf(person) // find out which index of the array the student is occupying so we can remove it without removing any others by mistake
+                    return this.students.splice(idx, 1) // removes the index we found by matching the person, and only removes 1 element of the array
+                }
+            }
+        }
+
+        // Create some people from our template class
+        let Janice = new Person('Janice', 'Leigh', 21, 'f', 'USA')
+        let Jordan = new Person('Jordan', 'Roy', 530, 'm', 'Canada')
+        let Karen = new Person('Karen', 'Dope', 81, 'f', 'Canada')
+        
+        // Create a course out of our Classroom javascript class
+        let SocialStudies = new Classroom('social studies')
+        SocialStudies.addStudent(Janice)
+        SocialStudies.addStudent(Kris)
+        SocialStudies.addStudent(Jordan)
+        SocialStudies.addStudent(new Person('Megan', 'Diva', 18, 'f', 'Outer Space'))
+        console.log(SocialStudies)
+        // Test our remove method
+        SocialStudies.removeStudent(Karen)
+        console.log(SocialStudies)
+
+        // create a list of just the female students
+        let women = SocialStudies.students.filter( (student)=>{
+            if (student.sex == 'f') return true
+        } )
+        console.log('List the female students:')
+        console.log(women)
+
+        // create a list of only the older students
+        let old = SocialStudies.students.filter( function(studs) { if (studs.age > 30) return true } )
+        console.log('List the elderly students:')
+        console.log(old) 
+
+        // list only canadians, using short hand notation
+        let cads = SocialStudies.students.filter( x => x.loc == 'Canada' )
+        console.log('List Canadians:')
+        console.log(cads)
+
+
+// DO THIS AFTER
+        class Holiday_object{
+            constructor(a, b) {
+                this.daysTaken = b
+                this.totalDays = a
+            }
+            get daysRemaining(){
+                return this.calcDaysRemaining()
+            }
+            calcDaysRemaining(){
+                let tmp = this.daysTaken - this.totalDays + ' days of holiday remaining'
+                console.log(tmp)
+                return tmp
+            }
+        }
+        
+        class Employee {    // mental note: holidaysObject should look something like this... { totalDays: x, daysTaken: y }
+            constructor(persona, pay, holidaysObject, hiredOn, id_provided){
+                this.person = (persona) ? persona : "No Person Object Data Found"
+                this.salary = parseInt(pay)
+                this.holidays = holidaysObject  // we'll do some computing on this data later
+                this.startDate = hiredOn        // we'll cover the datetime javascript library on another day, methinks
+
+                this.id = (id_provided == 'default value') ? Math.round(Math.random()*10000) : id_provided
+            }
+            // if you don't know the value of a property yet, unlike constructor items, you can create a GETTER function
+            // "get" to define a function, we're telling the class to do some work to get the next "this.property" value
+            get vacation(){
+                return this.calcVacation()
+            }
+            // method which does the computation we want to assign to this employee's 'vacation' property, so we quickly check how many holidays each person has left in the year based on the information we provided in the holiday object
+            calcVacation(){
+                return parseInt(this.holidays.totalDays) - parseInt(this.holidays.daysTaken)
+                // return this.holidays.totalDays-this.holidays.daysTaken
+            }
+        }
+        class Company {
+            constructor(name){
+                this.name = (name) ? name : "No Name"
+                this.employees = {}
+                this.positions = ['admin', 'sales', 'executive']
+            }
+            get countEmployees(){
+                return this.calcNumberOfEmployees()
+            }
+            calcNumberOfEmployees(){
+                return this.countEmployees.length
+            }
+        }
+
+        // GENERATOR FUNCTIONS - not your average functions! These can run on infinite sets without crashing. The function hangs when the yield is called and waits to be called again. So in essence, you can just leave this function hanging for as long as you're running your web page and it'll never finish. Or, you can end it once a condition has been satisfied and you're sure you don't need it anymore.
+        // For this example, we're going to run an infinite loop that basically just acts as a counter. When called, it generates a new number for us and we can use that for an employee id
+        // Don't forget, there are "Math" objects and methods built in to javascript to produce random numbers and things like that too.
+        function* emp_id_generator(){
+            let id = 0
+            while (true) {
+                yield ++id  // notice!!! we're incrementing BEFORE expressing a value, rather than "id++" which equals its present value, then it increments after exposing itself. --decrementFirst also works, decrementAfter--
+            }
+        }
+        let some_ids = emp_id_generator()
+        // console.log(some_ids.next().value)
+
+
+        function getId(){
+            let tmp = new String(some_ids.next().value)     // JSON.stringify(some_ids.next().value) would also work here, but we're trying to show you different ways of doing the same things. Worth mentioning as a reminder though
+            let output = '0'
+            let idsize = 10                                 // number of digits we want our id's to be
+            for (let len = tmp.length; len < idsize; len++) {
+                // output = output.concat('0')
+                output += '0'
+            }
+            output += tmp
+            return output
+        }
+
+        // Make a fake Company...
+        let test_company = new Company('Kris Korp')
+        // Make a fake Person
+        let test_Person = new Person('Alice', 'Bob', 69, 'f', 'Canada')
+        // Create an object our class is expecting for each person added to employees array object
+        // let test_holidays = {
+        //     totalDays: 14,
+        //     daysTaken: 4
+        // }
+        // Make a holiday object, ( vacation_days_taken, vacations_Days_Remaining ) <===> (a, b) in our object constructor
+        let test_holidays = new Holiday_object(14, 4)   // much cleaner, much easier to read, much easier to automate and data entry. Fewer risk of typos too!!
+
+        let test_employee = new Employee(test_Person, 25, test_holidays, 'April 1 2021', getId())
+        test_company.employees[test_employee.person.fullName] = test_employee 
+        
+        // so we got it the long way, let's do it a bit better as we add more data to our project
+        let Andy_Rueben = new Person('Andrew', 'Reuben', 25, 'm', 'Germany')
+        let Lana_Dahlio = new Person('Lana', 'Dahlio', 42, 'f', 'Britain')
+        let test_employee2 = new Employee(Andy_Rueben, 32, new Holiday_object(7,0), 'March 23, 2021', getId())
+        // let test_employee2 = new Employee(Andy_Rueben, 32, { totalDays: 7, daysTaken: 0 }, 'March 23, 2021')
+        let test_employee3 = new Employee(Lana_Dahlio, 28, { totalDays: 27, daysTaken: 10 }, 'May 3, 2021',  getId())
+        test_company.employees[test_employee2.person.fullName] = test_employee2
+        test_company.employees[test_employee3.person.fullName] = test_employee3
+        let test_employee4 = new Employee(new Person('Frivolous', 'Gravitas', 35, 'M', 'CANADA'), 50, { totalDays: 30, daysTaken: "15" }, 'November 11, 2021',  getId())   // note, gonna play with the cases and string value of "15" in the holidays object
+        test_company.employees[test_employee4.person.fullName] = test_employee4
+        // console.log(test_employee4)
+        // console.log(test_company.employees)
+        // console.log(test_employee2.salary)
+        // console.log(test_employee2.vacation)
+        // console.log(test_employee2.person.fullName)
+        // console.log(test_company.employees.Lana_Dahlio.vacation())
+        // console.log(test_company.employees['Alice Bob'])
+        console.log(test_company.employees)
+        for (let n in test_company.employees) {
+            console.log(test_company.employees[n].person.fullName)
+            console.log(test_company.employees[n].person.info)
+        }
+        /* Our data structure looks like this:
+        1) Persons have properties like name and age. 
+        2) Employees are Persons with pay and holidays. 
+        3) Company has Employees
+        Company
+            Employees ----------------------
+                ^Unique Person
+                    displayInformation()
+                    -firstName
+                    -lastName
+                    -age
+                -salary
+                    calculatePay()
+                    -salary rate
+                    -hours worked
+                -holidays
+                    calculateVacationDays()
+                    -vacation days taken
+                    -vacation days total
+            --------------------    
+                ^Unique Person
+                    displayInformation()
+                    -firstName
+                    -lastName
+                    -age
+                -salary
+                    calculatePay()
+                    -salary rate
+                    -hours worked
+                -holidays
+                    calculateVacationDays()
+                    -vacation days taken
+                    -vacation days total
+            --------------------    
+                ^Unique Person
+                    displayInformation()
+                    -firstName
+                    -lastName
+                    -age
+                -salary
+                    calculatePay()
+                    -salary rate
+                    -hours worked
+                -holidays
+                    calculateVacationDays()
+                    -vacation days taken
+                    -vacation days total
+DATABASES                    
+We have a Person class, an Employee class which gives us employment info of each Person, and a Company class which has many employees
+This can be useful for creating data bases, or updating or displaying information stored in a database. Remember, JSON means "JavaScript Object Notation"
+That means that building objects with classes is a great way to work with databases since databases and CSV's and table data can be easily converted to and from JSON
+
+        */
+
+
+        </script>
+    </body>
+</html>
