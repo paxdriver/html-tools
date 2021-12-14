@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<head>
+    <title>Frivolous Gravitas - Introduction to Javascript: Drawing in the browser using "Canvas"</title>
+    <!-- <header><author>Kristopher Driver</author></header> -->
+<meta name="description" content="Introductory javascript, HTML5 Canvas" /><meta charset="utf-8"></head>
+<body>
+<!-- channel: https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg
+facebook: https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987
+twitter: https://twitter.com/FrivolousGravi1
+iTunes / Apple podcast: https://podcasts.apple.com/us/podcast/id1545984577
+Google podcast: https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s
+Kris Driver: https://www.KrisDriver.com
+Kris's gitHub: https://github.com/paxdriver/html-tools
+ 
+Frivolous Gravitas Extras - Intro to Javascript Live Sessions
+
+1. Recursion: https://youtu.be/khaCHAiDCi0
+2. Functions: https://youtu.be/uN7UeBT60Bo
+3. Methods: https://youtu.be/KaaIvaCmiu8
+4. Classes: https://youtu.be/aEVjpqUk5N4
+5. Concurrency: https://youtu.be/oTDMwdIbVxU -->
+
+<canvas id="paint"></canvas>
+
+<script type='text/javascript'>
+    
+    // Set up the page body 
+    let body = document.getElementsByTagName('body')[0]
+    body.style.background = 'black'
+    body.style.overflow = 'hidden'
+    
+    // Set up my canvas element
+    const canvas = document.getElementById('paint')
+    const context = canvas.getContext('2d')
+    let c = context
+    
+    // Get window width and height
+    let w = window.innerWidth
+    let h = window.innerHeight
+    
+    // Set canvas size, ie: its pixel resolution
+    canvas.width = w
+    canvas.height = h
+
+    // Sets canvas CCS styles (size of the canvas to be displayed by the web browser)
+    canvas.style.width = w + 'px'
+    canvas.style.height = h + 'px'
+    canvas.style.margin = 0
+    canvas.style.padding = 0
+    canvas.style.position = 'absolute'
+    canvas.style.left = 0
+    canvas.style.top = 0
+    canvas.style.background = 'rgba(200,200,200,1)'
+    canvas.style.border = '1px solid black'
+
+    function makeDisplaybox(){
+        // Create and set styles on display box
+        let displayBox = document.createElement('div')
+        displayBox.style.position = 'fixed'
+        displayBox.style.right = '0px'
+        displayBox.style.top = '100px'
+        displayBox.style.width = '225px'
+        displayBox.style.height = '100px'
+        displayBox.style.backgroundColor = 'rgba(155,200,55, 0.5)'
+        
+        // Data object containing our canvas resolution and CSS-defined size to display in the browser
+        let canvasInfo = {
+            width: canvas.width,
+            height: canvas.height,
+            screen_w: canvas.style.width,
+            screen_h: canvas.style.height
+        }
+        
+        // Screen and canvas dimensions, displayed inside of display a div tag
+        displayBox.innerHTML = "Canvas Info Box: <br />"
+        displayBox.innerHTML += "Canvas resolution width: " + canvasInfo.width + "<br />"
+        displayBox.innerHTML = displayBox.innerHTML + "Canvas resolution height: " + canvasInfo.height + "<br />"
+        displayBox.innerHTML += "Screen width: " + canvasInfo.screen_w + "<br />"
+        displayBox.innerHTML += "Screen height: " + canvasInfo.screen_h + "<br />"
+        body.appendChild(displayBox)        // attaches div element we create to the body tag of the html 
+    }
+    makeDisplaybox()
+
+    // simple drawing lines and text
+    context.moveTo(0,0)
+    context.font = "20px Verdana"
+    context.fillText("Coordinates 0,0", 15, 15)     // 15, 15 offset otherwise text gets rendered out of bounds
+    context.beginPath()
+    context.moveTo(w/2, h/2)
+    context.lineTo(w/3, h-300)
+    context.lineTo(w-200, h-150)
+    context.closePath()
+    context.stroke()
+
+    // Make grid lines across the canvas
+    let gridSize = 50               // Adjustable Value
+    let xGridLines = w / gridSize
+    let yGridLines = h / gridSize
+    let startValueOfAlpha = 1       // Adjustable Value
+    let alpha
+    resetAlpha()
+    let fadeEffect = [alpha / xGridLines, alpha / yGridLines]
+    // Reset opacity variable, for use with the fade effect
+    function resetAlpha(){
+        alpha = startValueOfAlpha
+    }
+
+    // make grid lines
+    for (let i = 0; i < xGridLines; i++){
+        c.beginPath()
+        c.moveTo(i*gridSize, 0)
+        c.lineTo(i*gridSize, h)
+        c.strokeStyle = `rgba(0, 0, 0, ${alpha} )`
+        c.stroke()
+        alpha -= fadeEffect[0]              // make lines fade as they get further from the origin
+        c.closePath()
+    }
+    resetAlpha()
+    for (let i = 0; i < yGridLines; i++){
+        c.beginPath()
+        c.moveTo(0, i*gridSize)
+        c.lineTo(w, i*gridSize)
+        c.strokeStyle = `rgba(0, 0, 0, ${alpha} )`
+        c.stroke()
+        alpha -= fadeEffect[1]
+        c.closePath()
+    }
+
+    // draw a simple circle
+    c.beginPath()
+    c.arc(gridSize*3, gridSize*2, gridSize, 0, Math.PI*2, true)         // arguments for arc(x, y, radius, startAngle, endAngle, clockwise_boolean)
+    // c.stroke()
+    c.fillStyle = 'rgba(0,0,0,0.25)'
+    c.fill()
+    c.closePath()
+
+    // Create function to draw points
+    let pointSize = 25      // Adjustable Value
+    let offsetText = 25     // Adjustable Value
+    let colors = []
+    colorChanger()
+    function makePoint(x, y){
+        c.beginPath()
+        c.arc(x, y, pointSize, 0, Math.PI*2, true )
+        colorChanger()
+        c.strokeStyle = `rgba(${colors[0]},${colors[1]},${colors[2]}, 1)`
+        c.fillStyle = `rgba(${colors[0]},${colors[1]},${colors[2]}, 1)`
+        c.stroke()
+        c.fill()
+        c.closePath()
+        colorChanger()
+        c.fillStyle = `rgba(${colors[0]},${colors[1]},${colors[2]}, 1)`
+        c.fillText(`x: ${x}, y: ${y}`, x+offsetText, y+offsetText)
+    }
+
+    // Generate a random rgb color value
+    function colorChanger(){
+        let counter = 0
+        colors = []
+        while (counter < 3){
+            colors.push(Math.round( Math.random()*255 ))
+            counter++
+        }
+        console.log(colors)
+    }
+
+    let shouldpaint = true          // On/Off switch for clearing the canvas on a timer
+    canvas.addEventListener('click', e => {     // click once to switch on and off the timer
+        makePoint(e.clientX, e.clientY)
+        shouldpaint = (shouldpaint) ? false : true  // inline if statement: (truth condition) ? this_value_if_true : this_value_if_false
+    })
+
+    // Mouse events triggering painting to canvas
+    canvas.addEventListener('mousemove', e => {
+        setTimeout( ()=>{
+            makePoint(e.clientX, e.clientY)
+        }, 350 )
+    })
+
+    // timer for clearing the canvas, click event activates / deactivates
+    window.setInterval( ()=>{
+        if (shouldpaint == true) { 
+            c.clearRect(0, 0, w, h)
+        }
+    }, 5000)
+
+</script>
+</body>
+</html>
