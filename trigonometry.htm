@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<head>
+    <title>Frivolous Gravitas - Introduction to Javascript: Trigonometry Visualized</title>
+    <!-- <header><author>Kristopher Driver</author></header> -->
+<meta name="description" content="Introductory javascript, HTML5 Canvas" /><meta charset="utf-8"></head>
+<body>
+<!-- MY LINKS
+channel: https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg
+facebook: https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987
+twitter: https://twitter.com/FrivolousGravi1
+iTunes / Apple podcast: https://podcasts.apple.com/us/podcast/id1545984577
+podcast rss feed url: https://krisdriver.com/feed/rssfeed.xml
+Google podcast: https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s
+Kris Driver: https://www.KrisDriver.com
+Kris's gitHub: https://github.com/paxdriver/html-tools
+ 
+Frivolous Gravitas Extras - Intro to Javascript Live Sessions
+
+1. Recursion: https://youtu.be/khaCHAiDCi0
+2. Functions: https://youtu.be/uN7UeBT60Bo
+3. Methods: https://youtu.be/KaaIvaCmiu8
+4. Classes: https://youtu.be/aEVjpqUk5N4
+5. Concurrency: https://youtu.be/oTDMwdIbVxU 
+6. Canvas: https://youtu.be/G2FN0sSdU-k
+
+For more on the maths, see javidx9's video on maths of making games - https://youtu.be/DPfxjQ6sqrc or "3 Blue 1 Brown" series on linear algebra for a deeper, more intuitive and more indepth look at vectors, matrices, transformations and visualization - https://www.youtube.com/watch?v=kjBOesZCoqc
+NOTE: neither is affiliate with me or this channel, I'm quite positive neither even knows I exist, they're just supremely good resources for learning math and code. I like to give credit where it's due.
+--> 
+<canvas id="paint"></canvas>
+<script type='module'>
+    
+    // Set up the page body 
+    let body = document.getElementsByTagName('body')[0]
+    body.style.background = 'black'
+    body.style.overflow = 'hidden'
+    
+    // Set up my canvas element
+    const canvas = document.getElementById('paint')
+    const context = canvas.getContext('2d')
+    let c = context
+    
+    // Get window width and height
+    let w = window.innerWidth
+    let h = window.innerHeight
+    
+    // Set canvas size, ie: its pixel resolution
+    canvas.width = w
+    canvas.height = h
+
+    // Global angle variable used for center circle draws
+    let angle;
+
+    // Sets canvas CCS styles (size of the canvas to be displayed by the web browser)
+    canvas.style.width = w + 'px'
+    canvas.style.height = h + 'px'
+    canvas.style.margin = 0
+    canvas.style.padding = 0
+    canvas.style.position = 'absolute'
+    canvas.style.left = 0
+    canvas.style.top = 0
+    canvas.style.background = 'rgba(200,200,200,1)'
+    canvas.style.border = '1px solid black'
+
+    // center the origin of the context for drawing unit circles and unit vectors
+    context.translate(w/2, h/2)
+
+    // draw axis for x and y
+    let topside = h/2           // the canvas context is being moved from the top corner to the center, so up from halfway is half the full height
+    let bottomside = -(h/2)     // same for the bottom but this number is going to be negative, relative to 0,0 being at the center of the canvas
+    let leftside = -(w/2)       // same for the left, with 0 in the center everything left of center is minus half the screen width
+    let rightside = w/2         // same for the right, but positive half the screen width
+    let centerpoint = [w/2, h/2]    // and a vector for the centerpoint x,y coordinates, since the screen size can change we want to grab the center coordinates
+
+    // #TodayILearned Javascript's Math object doesn't have secant or cosecant trig functions built in...
+    function secant(theta){ return 1 / Math.cos(theta) }    // old school function declaration
+    const cosecant = theta => ( 1 / Math.sin(theta) )   // new school function declaration. ()=>{} syntax returns automatically if only a single line
+
+    // Draw x and y axis's
+    function drawAxes(){
+        c.strokeStyle = 'black'
+        c.beginPath()
+        c.moveTo(0,topside)
+        c.lineTo(0, bottomside)
+        c.moveTo(leftside, 0)
+        c.lineTo(rightside, 0)
+        c.stroke()
+        c.closePath() 
+    }
+    drawAxes()
+
+    // make points function
+    function makePoint(x,y,size=5,color='blue') {
+        let pointRadius = size  // defaults to 5 but allows us to change size when calling the function if we want
+        let pointStyle = color  // allows specifying color if we want
+        let tmp = c.fillStyle
+        c.fillStyle = pointStyle
+        c.beginPath()
+        c.moveTo(x, y)
+        c.arc(x, y, pointRadius, 0, Math.PI*2, true)
+        c.fill()
+        c.fillStyle = 'black'
+        c.fillText(`X: ${x}, Y: ${ -(y) }`, x+5, y+15)
+        c.closePath()
+        c.fillStyle = tmp
+    }
+
+    // Floating info pane ADJUSTABLE VALUES
+    let toolTipW = 150
+    let toolTipH = 70
+
+    // initialize mouse coordinate storage object
+    let mouse = {x: 0, y: 0}
+    
+    // Keep mouse coordinates up to date...
+    canvas.addEventListener('mousemove', (e)=>{
+        mouse.x = e.clientX
+        mouse.y = e.clientY
+    })
+
+    let dotsToPaint = { 
+        center : [0,0],
+        left : [-100,0],
+        right : [100,0],
+        up : [0,100],
+        down : [0,-100],
+        newDots: []     // push on new coordinates as arrays of [x,y] coordinates
+    }
+
+    function drawAngle(mousex, mousey){     // NOTE: mousex and mousey are provided as args with the centerpoint offsets already done
+        let radius = 100                    // ADJUSTABLE: size of the center circle, tangent is relative to it
+        angle = Math.atan2(mousey, mousex)  // angle = arc tangent aka inverse tangent of OPPOSITE / ADJACENT
+        // angle is positive counterclockwise to 180 degrees, but then goes negative...
+        // notice, angle at -x and -y jumps from pi to -pi when crossing the y axis
+        // We want the angle's value to continue to get larger as it goes around the unit circle
+        // A full rotation is 2*PI
+        if (angle < 0) {
+            let tmp = angle // get that original value of angle that's not working how we want it to...
+            angle = (Math.PI*2)+tmp // set angle to full circle, then add tmp to it, which is negative
+                                    // and shrinks the closer it gets to the full circle (ie: less and less is removed
+                                    // as tmp approaches a full rotation)
+        }   // REMINDER:    CCW is boolean 'true' in the arc() method when we draw... 
+            //  arc() method arguments: arc(x_position, y_position, radius, start_angle, end_angle, CCW_bool)
+        
+        let tmpfill = c.fillStyle
+        c.beginPath()
+        c.fillStyle = 'rgba(100,50,50,0.5)'
+        c.moveTo(0,0)
+        // c.arc(0,0,250,0,angle,true)         // it kinda works... but we get sort of the opposite of what we're intended here
+        c.arc(0,0,radius,0,-angle,true)    // THIS IS WHAT WE'RE LOOKING FOR, because y+ points down, we gotta reverse our angle's sign
+        c.fill()
+        c.stroke()
+        c.closePath()
+        c.fillStyle = tmpfill
+
+        // draw tangent line: a tangent is Opp/Adj -> a perpendicular angle is -Adj/Opp
+        let x = Math.cos(angle)*radius        // MATH: adjust angle and get new x, y from cos(a), sin(a) respective  
+        let y = Math.sin(-angle)*radius       // then scale by the radius to get the coordinate location. note, -angle to correct for browser vs unit circle screenspace
+        let mx = mouse.x - centerpoint[0]       // centerpoint[] is just [width/2, height/2]
+        let my = mouse.y - centerpoint[1]
+        makePoint(x.toFixed(1),y.toFixed(1))  // point at the edge of the center circle, relative to the mouse position
+        let p1 = [x+my, y-mx]   // create a tangent point to draw to
+        let p2 = [x-my, y+mx]   // create another tangent point to draw to
+        c.beginPath()
+        c.moveTo(x, y)
+        c.lineTo(p1[0], p1[1])
+        c.lineTo(p2[0], p2[1])
+        c.closePath()
+        c.stroke()
+        makePoint(p1[0].toFixed(1), p1[1].toFixed(1))
+        makePoint(p2[0].toFixed(1), p2[1].toFixed(1))
+    }
+
+    let offset = 0      // for the marching pattern of the dashed lines
+    function dashedVertical(){
+        offset++        // for the marching pattern of the dashed lines
+        if (offset > 8) {
+            offset = 0
+        }
+        let unitspace = winToVec(mouse.x, mouse.y)  // needed for getting context coordinates from window / mouse coordinates
+        let tmpstroke = c.strokeStyle
+        c.strokeStyle = 'rgba(90,0,0,1)'
+        c.setLineDash([6, 6])       // length of a dash, and gap between dashes
+        c.lineDashOffset = offset  // offset of where to start the pattern
+
+        // vertical line
+        c.beginPath()
+        c.moveTo(unitspace[0], 0)
+        c.lineTo(unitspace[0], unitspace[1])
+        c.closePath()
+        c.stroke()
+        // angled extension line
+        c.beginPath()
+        c.moveTo(unitspace[0], unitspace[1])
+        c.lineTo(unitspace[0]*2, unitspace[1]*2)
+        c.closePath()
+        c.stroke()
+        c.setLineDash([])
+        c.strokeStyle = tmpstroke
+    }
+    
+    function render(){
+        let xcoords = mouse.x
+        let ycoords = mouse.y
+        
+        // clear previous frame's render, then redraw the stuff we want to remain visible
+        c.clearRect(leftside, -topside, w, h)
+        
+        // redraw angle arc on every frame
+        let [unit_x, unit_y] = [mouse.x-rightside, -(mouse.y+bottomside)]   // unit circle coordinates
+        let unit_x2 = mouse.x-centerpoint[0]    // same thing as above
+        let unit_y2 = -(mouse.y-centerpoint[1])   // same thing as above
+        drawAngle(unit_x2, unit_y2)     // updated constantly by the mousemove event listener
+
+        // redraw axis lines on every frame
+        drawAxes()
+
+        // default dots for an idea of coordinate scales
+        for (let item in dotsToPaint){
+            makePoint(dotsToPaint[item][0], dotsToPaint[item][1])
+        }
+        // dots created by mouse clicks
+        dotsToPaint.newDots.forEach( (v,i,a) =>{
+            makePoint(v[0], v[1])
+        })
+ 
+        // the floating info box
+        c.beginPath()
+        c.moveTo(xcoords, ycoords)
+        c.fillStyle = 'rgba(0,0,0,0.5)'
+        c.fillRect(xcoords-rightside+10, ycoords+bottomside, toolTipW, toolTipH)
+        c.stroke()
+        let tmp = c.fillStyle
+        c.fillStyle = 'yellow'
+        c.font = '20px Verdana'
+        // Remember, 'rightside' is the width / 2 because we translated the context from the corner to the center
+        //  -We also have to add to the y coordinates 'bottomside' because it too is only half the screen height, 
+        //  but we add this one instead of subtracting because we set the variable 'bottomside' as a negative number
+        c.fillText(`X: ${xcoords-rightside+10}, Y: ${ -(ycoords+bottomside) }`, xcoords-rightside+25, ycoords+bottomside+55)
+        c.fillText(`angle: ${Math.round((angle*180)/Math.PI)}°`, xcoords-rightside+25, ycoords+bottomside+20)
+        c.stroke()
+        c.fillStyle = tmp
+        c.closePath()
+
+        // Draw right angle dashed vertical line from y:0 to mouse coordinates
+        dashedVertical()   
+        c.beginPath()
+        c.moveTo(0,0)
+        c.lineTo(winToVec(mouse.x, 0)[0], winToVec(0, mouse.y)[1])  // the dashed line from center of unit circle to the mouse
+        c.stroke()
+        c.closePath()
+
+        window.requestAnimationFrame(render)                        // recursive call for animation
+    }
+    window.addEventListener('load', ()=>{
+        render()
+    })
+    
+    // convert screenspace mouse coordinates to unit circle coordinates
+    function winToVec(x, y) {
+        // console.log(x-rightside, y+bottomside)
+        return [x-rightside, y+bottomside]
+    }
+    winToVec(0,0)
+    // conver unit circle coordinates to the mouse's screenspace coordinates
+    function vecToWin(x, y) {
+        return [x+rightside, y-bottomside]
+    }
+
+    // calculate distance from origin, aka get the hypothenuse
+    function dist(x, y) {
+        let c = Math.pow(x, 2) + Math.pow(y, 2)
+        c = Math.sqrt(c)
+        return Math.round(c)
+    }
+
+    // click to place a dot and its coordinates
+    canvas.addEventListener('click', e=>{
+        let x = e.clientX
+        let y = e.clientY
+        let unitVector = winToVec(x, y)
+        // add dot to array of custom dots to paint
+        dotsToPaint.newDots.push([unitVector[0], unitVector[1]])
+    })
+    
+    // normalize x,y each by dividing by the distance to get our unit vector, aka normal vector
+    function normalizeVec(x,y){
+        let d = dist(x, y)
+        let x_norm = x / d
+        let y_norm = y / d
+        return [x_norm, y_norm]
+    }
+
+</script>
+</body>
+</html>
