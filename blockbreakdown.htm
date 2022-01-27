@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Frivolous Gravitas - Particle Playground</title>
+    <!-- <header><author>Kristopher Driver</author></header> -->
+    <meta name="description" content="Javascript, HTML5 Canvas" />
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <!-- MY LINKS
+channel: https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg
+facebook: https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987
+twitter: https://twitter.com/FrivolousGravi1
+iTunes / Apple podcast: https://podcasts.apple.com/us/podcast/id1545984577
+podcast rss feed url: https://krisdriver.com/feed/rssfeed.xml
+Google podcast: https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s
+Kris Driver: https://www.KrisDriver.com
+Kris's gitHub: https://github.com/paxdriver/html-tools
+
+Frivolous Gravitas Extras - Intro to Javascript Live Sessions
+
+1. Recursion: https://youtu.be/khaCHAiDCi0
+2. Functions: https://youtu.be/uN7UeBT60Bo
+3. Methods: https://youtu.be/KaaIvaCmiu8
+4. Classes: https://youtu.be/aEVjpqUk5N4
+5. Concurrency: https://youtu.be/oTDMwdIbVxU 
+6. Canvas: https://youtu.be/G2FN0sSdU-k
+
+For more on the maths, see javidx9's video on maths of making games - https://youtu.be/DPfxjQ6sqrc or "3 Blue 1 Brown" series on linear algebra for a deeper, more intuitive and more indepth look at vectors, matrices, transformations and visualization - https://www.youtube.com/watch?v=kjBOesZCoqc
+NOTE: neither is affiliate with me or this channel, I'm quite positive neither even knows I exist, they're just supremely good resources for learning math and code. I like to give credit where it's due.
+-->
+    <canvas id="paint"></canvas>
+    <script type='text/javascript'>
+
+        // Set up the page body 
+        let body = document.getElementsByTagName('body')[0]
+        body.style.background = 'black'
+        body.style.overflow = 'hidden'
+
+        // Set up my canvas element
+        const canvas = document.getElementById('paint')
+        const c = canvas.getContext('2d')
+
+        // Get window width and height
+        let w = window.innerWidth
+        let h = window.innerHeight
+
+        // Set canvas size, ie: its pixel resolution
+        canvas.width = w
+        canvas.height = h
+
+        // Sets canvas CCS styles (size of the canvas to be displayed by the web browser)
+        canvas.style.width = w + 'px'
+        canvas.style.height = h + 'px'
+        canvas.style.margin = 0
+        canvas.style.padding = 0
+        canvas.style.position = 'absolute'
+        canvas.style.left = 0
+        canvas.style.top = 0
+        canvas.style.background = 'rgba(200,200,200,1)'
+        canvas.style.border = '1px solid black'
+
+        // distance formula
+        function distxxyy(x1, x2, y1, y2) {
+            return Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2))
+        }
+        function distxy(x1, y1, x2, y2){
+            return Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2))
+        }
+
+        // console.log(dist(100, 400, 100, 500))   // 3,4,5 triangle to check distance formula - WORKS
+
+        // store mouse coordinate data 
+        let mouse = { x: 0.1, y: 0.1 }  // initialize mouse coordinates
+        canvas.addEventListener('click', e => {
+            e.preventDefault()
+            mouse.x = e.clientX
+            mouse.y = e.clientY
+        })
+
+        const scale = 50
+        const grid_x = Math.floor(w / scale)
+        const grid_y = Math.floor(h / scale)
+        const particleSize = 50
+
+        class MouseCircle{
+            constructor(x, y, size){
+                this.x = x
+                this.y = y
+                this.radius = size
+
+            }
+            update(){
+                this.x = mouse.x
+                this.y = mouse.y
+            }
+            draw(){
+                c.beginPath()
+                c.arc(this.x, this.y, this.radius, 0, Math.PI*2, true)
+                c.stroke()
+                c.closePath()
+            }
+        }
+        class Particle{
+            constructor(x, y, delay = 0, size = scale, angle=0){
+                this.x = x
+                this.y = y
+                this.size = size
+                this.angle = angle
+                this.rotationSpeed = 0.01
+                this.delay = delay
+                this.timer = {secs: 0, time: 0}
+            }
+            update(){
+                if(this.timer.time < this.delay){
+                    this.timer.secs++
+                    if (this.timer.secs > 60) {
+                        this.timer.secs = 0
+                        this.timer.time++
+                    }
+                }
+                else {
+
+                    let newx, newy
+                    newx = this.x * (Math.cos(this.angle))
+                    newy = this.y * (Math.sin(-this.angle))
+                    this.angle += this.rotationSpeed
+                    // this.rotationSpeed = (this.rotationSpeed < 0.01) ? this.rotationSpeed+0.01 : this.rotationSpeed
+                    
+                    if (this.angle > (Math.PI*2)) { this.angle = this.angle - (Math.PI*2) }
+                    
+                    this.x = newx
+                    this.y = newy + this.y
+                }
+                c.strokeStyle = 'rgba(0,0,0,0.5)'
+            }
+            makeShape(posx, posy){
+
+                let rotspeed = this.rotationSpeed
+                let sides = 4
+                let vertAngle = ( (Math.PI*2) / sides)
+                let fortyfive = (Math.PI*2) / 8
+                // c.strokeRect(posx, posy, posx + this.size, posy+this.size)
+                
+                c.beginPath()
+                c.moveTo(posx, posy)
+                for(let i = 1; i < sides+1; i++){
+                    let tmpx = posx+(this.size) * Math.cos((vertAngle*i)+fortyfive)
+                    let tmpy = posy+(this.size) * Math.sin((vertAngle*i)+fortyfive)
+                    
+                }
+
+                this.size = (this.size<400) ? this.size+0.01 : this.size
+                c.closePath()
+                c.stroke()
+
+            }
+            
+            draw(){
+                this.makeShape(this.x, this.y)
+                c.beginPath()
+                // c.moveTo(this.x+(this.x/2), this.y+(this.y/2))
+                c.moveTo(this.x, this.y)
+                c.lineTo(this.x+this.size, this.y)
+                c.lineTo(this.x+this.size, this.y+this.size)
+                c.lineTo(this.x, this.y+this.size)
+                c.lineTo(this.x, this.y)
+                c.closePath()
+                c.stroke()
+            }
+        }
+
+        // create a table to store table of objects
+        let field = {row: [], col: []}
+        // create rows based on the size of the window
+        for(let j = 0; j < grid_y; j++){
+            let _c = []            
+            // create columns in each row
+            for(let i = 0; i < grid_x; i++){
+                _c.push(new Particle(i*scale, j*scale, ((j+i)*2)/3) )
+            }
+            // push the array of new objects as a whole row into the table of rows
+            field.row.push(_c)
+        }
+        // we now have an array of rows, containing arrays of objects indexed by column
+        // init column arrays based on size of each row
+        for(let i = 0; i < field.row[0].length; i++){
+            field.col[i] = []
+        }
+        // for each item in each row, add to column index relative to the location in the row it is found
+        field.row.forEach( (v, i)=>{
+            v.forEach( (val, idx)=>{    // each row is an array of columns
+                field.col[idx].push(val) // push each object into its corresponding column
+            } ) // NOTE: we don't want to create more objects, just assign the ones already created so they can be easily looked up by either column or row
+        })
+        // check our logic... WORKS!
+        console.log(field.row[0][0] === field.col[0][0])   // these should match as exact instances of the same object
+        console.log(field.row[0][1] === field.col[1][0])   // these should match as exact instances of the same object
+        
+        let circleSize = 50
+        let mouseOver = new MouseCircle(0,0,circleSize)
+        
+        canvas.addEventListener('mousemove', (e)=>{
+            mouseOver.x = e.clientX
+            mouseOver.y = e.clientY
+        })
+        
+        function render(){
+            c.clearRect(0,0,w,h)    
+            mouseOver.draw()
+            field.row.forEach( (v)=>{
+                v.forEach( obj=>{
+                    obj.update()
+                    obj.draw()
+                })
+            })
+            requestAnimationFrame(render)
+        }
+
+        render()
+
+    </script>
+</body>
+
+</html>
