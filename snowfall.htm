@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<head>
+    <title>Frivolous Gravitas - Introduction to Javascript: Trigonometry Visual Tools</title>
+    <!-- <header><author>Kristopher Driver</author></header> -->
+    <meta name="description" content="Introductory javascript, HTML5 Canvas" />
+    <meta charset="utf-8">
+</head>
+<body>
+    <!-- channel: https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg
+facebook: https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987
+twitter: https://twitter.com/FrivolousGravi1
+iTunes / Apple podcast: https://podcasts.apple.com/us/podcast/id1545984577
+podcast rss feed url: https://krisdriver.com/feed/rssfeed.xml
+Google podcast: https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s
+Kris Driver: https://www.KrisDriver.com (check out my books and music while you're there!)
+Kris's gitHub: https://github.com/paxdriver/html-tools
+ 
+Frivolous Gravitas Extras - Intro to Javascript Live Sessions
+
+1. Recursion: https://youtu.be/khaCHAiDCi0
+2. Functions: https://youtu.be/uN7UeBT60Bo
+3. Methods: https://youtu.be/KaaIvaCmiu8
+4. Classes: https://youtu.be/aEVjpqUk5N4
+5. Concurrency: https://youtu.be/oTDMwdIbVxU 
+6. Canvas: https://youtu.be/G2FN0sSdU-k
+-->
+<div style="position: absolute; width: 100vw; height: auto; text-align: center;">
+    <h1 style='font-size: 48px; background-color: rgba(250,250,250,0.95); text-shadow: 3px 3px 5px rgba(25,25,25,0.5); border: 1px solid black'>Click the background to add particles!!!</h1>
+</div>
+    <canvas id='paint'></canvas>
+    <script type='module'>
+
+const body = document.getElementsByTagName('body')[0]
+body.style.background = 'black'
+body.style.margin = 0
+body.style.padding = 0
+body.style.overflow = 'hidden'
+
+const canvas = document.getElementById('paint')
+const context = canvas.getContext('2d')
+let c = context
+let screen_width = window.innerWidth
+let screen_height = window.innerHeight
+
+function setDimensions(){
+    screen_width = window.innerWidth
+    screen_height = window.innerHeight
+    canvas.width = screen_width
+    canvas.height = screen_height
+    canvas.style.width = screen_width + 'px'
+    canvas.style.height = screen_height + 'px'
+    canvas.style.background = 'rgba(220,220,220,1)'  
+}
+
+function init(){
+    setDimensions()
+    window.onresize = e=>{
+        e.preventDefault()
+        setDimensions()
+        render()
+    }
+    render()
+}
+
+window.onload = e => init()
+
+function render(){
+    c.clearRect(0, 0, screen_width, screen_height)
+    let todelete = []
+    snowfall.forEach( (v,i,a)=>{
+        v.update()
+        v.draw()
+        if (!v.alive) todelete.push(i)
+    })
+    if(todelete.length > 0){
+        todelete.forEach( v=>{
+            snowfall.splice(v, 1)
+            snowfall.push(new Snowflake(Math.random()*15))
+        })
+    }
+    // draw a circle under the mouse position
+    // if(mouse.x != undefined && mouse.y != undefined){
+    //     c.beginPath()
+    //     c.arc(mouse.x, mouse.y, 50, 0, Math.PI*2, true)
+    //     c.stroke()
+    //     c.closePath()
+    // }
+    window.requestAnimationFrame(render)
+}
+
+function distFrom(x1, y1, x2, y2) {
+    let dx = Math.pow(x1-x2, 2)
+    let dy = Math.pow(y1-y2, 2)
+    let result = Math.sqrt(dx+dy)
+    return result
+}
+
+class Snowflake{
+    color = [255, 255, 255] // all snowflakes start as white, then random values readjust color before render
+    alive = true    // all snowflakes start off alive
+    constructor(size){
+        //  to change falling particles to rising bubbles see commented code. Use only one or the other, but make sure to update in all 3 areas of the code
+        this.x = Math.round(Math.random()*screen_width) // randomize x-position of snowflake
+        // this.y = screen_height+size     // start off screen                              // bubbles rising   (1 of 3 to uncomment)
+        this.y = -size                     // start off screen                              // snowflakes falling (1 of 3 to uncomment)
+        this.size = size                                // size / radius of particle
+        this.alpha = 1                                  // opacity
+        this.gravity = (Math.random()*10)/2             // speed of falling
+        this.startPosition = [this.x, this.y]           // to check for direction switches, with 'shimmy'
+        this.shimmy = Math.round(Math.random()*155)      // the left-right movement range
+        this.leftright = true
+        this.color = [Math.round(this.color[0]*Math.random()),Math.round(this.color[1]*Math.random()),Math.round(this.color[2]*Math.random())]
+        this.velocity = 0
+    }
+    updateAlpha() {
+        let ysplit = screen_height    // dissolve before reaching the bottom, just a different effect
+        // this.alpha -= ( (1+this.alpha) / ysplit )*this.gravity       // JUST ANOTHER BUBBLES EFFECT
+        let yheight = screen_height/1.05
+        yheight = this.gravity/yheight      // change the alpha based on how fast it's falling
+        this.alpha -= yheight
+        
+        this.csstxt = `rgba(${this.color[0]}, ${this.color[1]}, ${this.color[2]}, ${this.alpha}`    // fill color
+        
+        if (this.gravity < 0.75) this.gravity = this.gravity*1.5   // reduce slower, boring snowflakes
+        else if (this.gravity > 3.5) this.gravity = this.gravity/2  // reduce fast snowflakes
+        
+        if (this.shimmy < 5) this.shimmy = this.shimmy*50    //  reduce x-axis jitters
+    }
+    update(){
+        if (this.alive){
+            let mouseRadius = 3        // How far away particles will interact with mouse (smaller means less sensitive, by distance)
+            // let mouseRadius = 15        // How far away particles will interact with mouse (smaller means less sensitive, by distance)
+            // MOUSE INTERACTIONS: mouse over and kill on contact settings
+            if (mouse.x != undefined && mouse.y != undefined) {
+                // kill particles touched by the mouse
+                if (distFrom(this.x, this.y, mouse.x, mouse.y) < this.size*(mouseRadius/3)) {
+                    this.alive = false   // toggle to kill particles on contact
+                }
+                else if (distFrom(this.x, this.y, mouse.x, mouse.y) < this.size*mouseRadius) {
+                    // this.velocity = -0.5           // attract particles to mouse instead of repel
+                    this.velocity = 3            // repel particles even more
+                                                    //      the "+3" just helps reduce jitters in animation
+                    if(this.x > mouse.x) { this.x += this.velocity*this.alpha+1}  // so that more faded particles are less influenced by this movement
+                    else if(this.x < mouse.x) { this.x -= this.velocity*(this.alpha+1)}
+                    if(this.y > mouse.y) { this.y += this.velocity*(this.alpha+1)}  // so that more faded particles are less influenced by this movement
+                    else if(this.y < mouse.y) { this.y -= this.velocity*(this.alpha+1)}
+                }
+                // if we want far particles to gravitate towards the mouse...
+                // else if (distFrom(this.x, this.y, mouse.x, mouse.y) > 50) {
+                //     this.velocity = distFrom(this.x, this.y, mouse.x, mouse.y)/100
+                //     if(this.x < mouse.x){ this.x += this.velocity }
+                //     else if(this.x > mouse.x){ this.x -= this.velocity }
+                //     if(this.y < mouse.y){ this.y += this.velocity/2 }
+                //     else if(this.y > mouse.y){ this.y -= this.velocity }
+                // }
+            }
+
+            // dampen or friction, slowing velocity value 
+            if (this.velocity > 0) { 
+                this.velocity -= 0.5   
+                if(this.x > mouse.x) { this.x += this.velocity*this.alpha}      // just a mouse effect, can be commented out
+                else if(this.x < mouse.x) { this.x -= this.velocity*this.alpha} // just a mouse effect, can be commented out
+                if(this.y > mouse.y) { this.y += this.velocity*this.alpha}  // using this.alpha as a scaler; faded particles are less influenced by mouse movement
+                else if(this.y < mouse.y) { this.y -= this.velocity*this.alpha}
+            }
+            
+            this.y += this.gravity                                                              // snowflakes falling
+            // this.y -= this.gravity                                                           // bubbles rising
+            // this.y += this.gravity+this.velocity      // JUST ANOTHER EFFECT IDEA
+            this.updateAlpha()
+            
+            // check the left-right shimmy toggle for switching directions
+            if ( this.x < this.startPosition[0]-this.shimmy ) this.leftright = false
+            else if ( this.x > this.startPosition[0] + this.shimmy) this.leftright = true
+
+            // move the x left/right depending on the toggle value
+            // if (this.leftright) this.x -= 0.35
+            if (this.leftright) this.x -= 0.35 + this.velocity   // JUST ANOTHER EFFECT IDEA
+            // else this.x += 0.35
+            else this.x += 0.35 + this.velocity                  // JUST ANOTHER EFFECT IDEA
+
+            // set dead if snowflake becomes invisible (aka garbage collection)
+            if((this.alpha <= 0) || (this.y > screen_height) ){                                 // snowflakes falling
+            // if((this.alpha <= 0) || (this.y < 0) ){                                          // bubbles rising
+                this.alive = false
+            }
+            // SOME OTHER EFFECTS
+            // this.size += this.size / 10
+            // this.size += this.size / 50
+            // this.size += this.size / 200
+        }
+    }
+    draw(){
+        if (this.alive) {
+            let r = this.size*1.2
+            let tmpfillstyle = c.fillStyle
+            c.fillStyle = this.csstxt           // updated in updateAlpha(), which is called in update()
+            // prepare to draw
+            c.moveTo(this.x, this.y)
+            c.beginPath()
+            // draw our circle
+            c.arc(this.x, this.y, r, 0, Math.PI*2, true)
+            c.fill()
+            // tidy up
+            c.closePath()
+            c.fillStyle = tmpfillstyle
+        }
+        else {
+            // console.log('dead snowflake')
+        }
+    }
+}
+
+let snowfall = []
+let numberFlakes = 500
+for(let i = 0; i < numberFlakes; i++){
+    snowfall.push(new Snowflake(Math.random()*20))
+}
+
+// Create more particles when the canvas is clicked
+canvas.addEventListener('click', e=>{
+    e.preventDefault()
+    for(let i = 0; i < numberFlakes; i++){
+        snowfall.push(new Snowflake(Math.random()*15))
+    }
+})
+
+let mouse = {}
+function getMouseCoords(evt){
+    [mouse.x, mouse.y] = [evt.clientX, evt.clientY]
+}
+canvas.addEventListener('mouseenter', e=>{
+    canvas.addEventListener('mousemove', getMouseCoords)
+})
+canvas.addEventListener('mouseleave', e=>{
+    mouse.x = undefined     // this will stop drawing the circle when mouse leaves the canvas
+    mouse.y = undefined     // this will stop drawing the circle when mouse leaves the canvas
+    // canvas.removeEventListener('mousemove', getMouseCoords )
+})
+
+
+    </script>
+</body>
+
+</html>
