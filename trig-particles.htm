@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Frivolous Gravitas - Introduction to Javascript: Trigonometry Visual Tools</title>
+    <!-- <header><author>Kristopher Driver</author></header> -->
+    <meta name="description" content="Introductory javascript, HTML5 Canvas" />
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <!-- channel: https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg
+facebook: https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987
+twitter: https://twitter.com/FrivolousGravi1
+iTunes / Apple podcast: https://podcasts.apple.com/us/podcast/id1545984577
+podcast rss feed url: https://krisdriver.com/feed/rssfeed.xml
+Google podcast: https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s
+Kris Driver: https://www.KrisDriver.com (check out my books and music while you're there!)
+Kris's gitHub: https://github.com/paxdriver/html-tools
+ 
+Frivolous Gravitas Extras - Intro to Javascript Live Sessions
+
+1. Recursion: https://youtu.be/khaCHAiDCi0
+2. Functions: https://youtu.be/uN7UeBT60Bo
+3. Methods: https://youtu.be/KaaIvaCmiu8
+4. Classes: https://youtu.be/aEVjpqUk5N4
+5. Concurrency: https://youtu.be/oTDMwdIbVxU  
+6. Canvas: https://youtu.be/G2FN0sSdU-k
+-->
+    <canvas id='paint'></canvas>
+    <script type='module'>
+
+        // setting up the page body
+        const body = document.getElementById('paint')
+        body.style.background = 'black'
+        body.style.overflow = 'hidden'
+
+        // set up my canvas element
+        const canvas = document.getElementById('paint')
+        const context = canvas.getContext('2d')
+        let c = context
+
+        // get window width and height
+        let w = window.innerWidth
+        let h = window.innerHeight
+
+        // set canvas size
+        canvas.width = w
+        canvas.height = h
+        canvas.style.width = w + 'px'
+        canvas.style.height = h + 'px'
+        canvas.style.margin = 0
+        canvas.style.padding = 0
+        canvas.style.background = 'rgba(255,255,255,1)'
+        canvas.style.position = 'absolute'
+        canvas.style.left = 0
+        canvas.style.top = 0
+
+        // starting angle of center circle
+        let angle = 0
+
+        // axis's variables
+        let topside = h / 2
+        let bottomside = -(h / 2)
+        let leftside = -(w / 2)
+        let rightside = w / 2
+        let centerpoint = [w / 2, h / 2]
+
+        // standard point radius
+        let pointRadius = 5
+        let pointStyle = 'blue'
+
+        // Center the unit circle
+        context.translate(w / 2, h / 2)
+
+        // Particle Globals
+        let newparticle = []
+        let points = []
+
+        function drawAxis() {
+            c.save()
+            c.strokeStyle = 'black'
+            c.beginPath()
+            c.moveTo(0, bottomside)
+            c.lineTo(0, topside)
+            c.stroke()
+            c.moveTo(rightside, 0)
+            c.lineTo(leftside, 0)
+            c.closePath()
+            c.stroke()
+            c.restore()
+        }
+
+        // on click, make points that leak out particle streams
+        function makePoint(x, y) {
+            let tmp = c.fillStyle
+            c.fillStyle = pointStyle
+            c.beginPath()
+            c.moveTo(x, y)
+            c.arc(x, y, pointRadius, 0, Math.PI * 2, true)    // CCW is true, false is the default
+            c.closePath()
+            c.fill()
+            c.fillStyle = tmp
+            c.moveTo(0, 0)
+            newparticle.push(new Particle(x, y))
+        }
+
+        let mouse = { x: 0, y: 0 }
+        let toolTipW = 150
+        let toolTipH = 75
+        let tooltipOffset = toolTipW - 25
+
+        // mouse effects
+        canvas.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX
+            mouse.y = e.clientY
+            let vec = winToVec(mouse.x, mouse.y)
+            makePoint(vec[0], vec[1])
+        })
+
+        // regather stray particles and bring them back to the center
+        canvas.addEventListener('mouseout', e=>{
+            let vec = winToVec(mouse.x, mouse.y)
+            newparticle.forEach( (v,i,a)=>{
+                v.rotation+= v.velocity
+                if ( v.distanceToOrigin > w || v.distanceToOrigin > h) {
+                    if (v.x > 0) { v.x = w / 2 }
+                    else { v.x = -w/2 }
+                    if (v.y > 0) { v.y = h/2 }
+                    else { v.y = -h/2 }
+                }
+                setTimeout( ()=>{
+                    v.isalive = false
+                }, 3000*Math.random())
+            })
+        })
+
+        // create points from clicks
+        canvas.addEventListener('click', e => {
+            let vector = winToVec(mouse.x, mouse.y)
+            makePoint(vector[0], vector[1])
+            c.font = '25px Verdana'
+            c.fillText(`Hypothenuse is: ${dist(vector[0], vector[1])}`, vector[0] + 15, vector[1])  // string template literal
+            points.push([vector[0], vector[1]])
+            // newparticle.push(new Particle(vector[0], vector[1]))     // Redundant after adding this push to makePoint() function
+        })
+
+        function render() {
+            let xcoords = mouse.x
+            let ycoords = mouse.y
+            let cspace = winToVec(mouse.x, mouse.y) // return an [x, y]
+            c.clearRect(leftside, -topside, w, h)
+            drawAngle(xcoords, ycoords)
+
+            drawAxis()
+ 
+            //TOOL TIP FLOATER
+            c.save()
+            c.font = 'bold 12px Verdana'
+            c.fillStyle = 'rgba(150, 55, 55, 0.76)'
+            c.fillRect(cspace[0] - tooltipOffset - 5, cspace[1], toolTipW, toolTipH)
+            c.fillStyle = 'black'
+            c.fillText(`mouse.x: ${xcoords}, mouse.y: ${ycoords}`, cspace[0] - tooltipOffset, cspace[1] + 15)
+            c.fillText(`angle: ${angle}`, cspace[0] - tooltipOffset, cspace[1] + 35)
+            c.fillText(`winToVec: ${cspace[0]}, ${cspace[1]}`, cspace[0] - tooltipOffset, cspace[1] + 55)
+            c.restore()
+
+            // Draw all the points created from the click function
+            if (points.length !== 0) {
+                points.forEach((v, i, a) => {
+                    makePoint(v[0], v[1])
+                })
+            }
+
+            // draw all particles created
+            if (newparticle.length !== 0) {
+                let removeIdx = []
+                newparticle.forEach((v, i, a) => {
+                    v.draw()
+                    v.update()
+                    if (v.distanceToOrigin > w/2 ) {
+                        v.isalive = false
+                    }
+                    if (typeof v.x == 'NaN'){
+                        v.isalive = false
+                    }
+                })
+                newparticle = [...newparticle.filter(x => { return x.isalive })]     // Delete dead particles
+                
+            }
+            // shear matrix (for reference later) [ x[1,0], y[1,1] ] 
+            window.requestAnimationFrame(render)
+        }
+
+        // the angle of mouse to unit circle, but in reverse
+        function drawAngle(mousex, mousey) {
+            let a = winToVec(mousex, mousey)
+            angle = Math.atan2(a[1], a[0])      // atan2(y, x) : function takes its args in reverse for some reason...
+            // adjust for screenspace radians calculation
+            if (angle < 0) {
+                let tmp = angle
+                angle = (Math.PI * 2) + tmp // in reverse, so spinning clockwise
+                // floating angle textbox
+                c.font = 'bold 12px Verdana'
+                c.fillText(`Mouse Angle: ${(radsToDegs(angle) - 360) * -1}}`, 45, 15)
+            } else {
+                // floating angle textbox
+                c.font = 'bold 12px Verdana'
+                c.fillText(`Mouse Angle: ${(radsToDegs(angle) + (360 * -1)) * -1}}`, 45, 15)
+            }
+
+            let angleArcSize = 50   // ADJUSTABLE VALUE
+
+            // Circle angle animation
+            c.beginPath()
+            c.moveTo(0, 0)
+            c.arc(0, 0, angleArcSize, 0, angle, true)
+            let tmpstyle = c.strokeStyle
+            c.strokeStyle = 'red'
+            let tmpfill = c.fillStyle
+            c.fillStyle = 'rgba(0,0,0,0.25)'
+            let tmpline = c.lineWidth
+            c.lineWidth = '4px'
+            c.stroke()
+            c.fill()
+            c.fillStyle = tmpfill
+            c.lineWidth = tmpline
+            c.strokeStyle = tmpstyle
+            c.closePath()
+
+            c.moveTo(0, 0)
+            c.lineTo(a[0], a[1])
+            c.stroke()
+        }
+        window.requestAnimationFrame(render)    // recursive render for animation
+
+        // Converts vector space from / to unit circle from / to window space
+        function vecToWin(x, y) {
+            return [x + rightside, y - bottomside]
+        }
+        function winToVec(x, y) {
+            return [x - rightside, y + bottomside]
+        }
+        // Generic distance function
+        function dist(x, y) {
+            let c = Math.pow(x, 2) + Math.pow(y, 2) // relative to [zero, zero]
+            c = Math.sqrt(c)
+            return Math.round(c)
+        }
+        function distTo(x1, y1, x2, y2) {
+            let x = x2 - x1
+            let y = y2 - y1
+            return dist(x, y)
+        }
+        function radsToDegs(rad) {
+            let deg = 360 / (Math.PI * 2)
+            return deg * rad
+        }
+
+        // make particle trails whose opacity changes relative to distance from the mouse
+        let velocity = 0.0005
+        let rotation = 0.001
+        let gravity = 0.01
+        let numberOfSides = 7
+        let size = 2
+        let startingAngle = 0.001
+        class Particle {
+            constructor(x, y) {
+                this.x = x
+                this.y = y
+                this.alpha = 1      // for fade effect based on distance to origin
+                this.distanceToOrigin = dist(x, y)
+                this.velocity = velocity
+                // this.wind = 3
+                this.gravity = 2
+                this.angle = startingAngle
+                this.rotation = rotation
+                this.size = size * 5
+                // this.size = Math.ceil(Math.random()*size*10)
+                this.storePoints = []
+                this.isalive = true
+            }
+            update() {      // comments are just some alternative ideas i was playing with...
+                // if (this.size < 15 || this.size > 50) this.size = Math.ceil(Math.random()*size*10)
+                let mousecoords = [mouse.x, mouse.y]
+                // let distFromMouse = distTo(this.x, this.y, mousecoords[0], mousecoords[1])
+                this.x = rotateXY(this.x, this.y + this.gravity, this.angle)[0]
+                // this.x = rotateXY(this.x + this.wind, this.y + this.gravity, this.angle)[0]
+                this.y = rotateXY(this.x, this.y + this.gravity, this.angle)[1]
+                // this.y = rotateXY(this.x + this.wind, this.y + this.gravity, this.angle)[1]
+                this.distanceToOrigin = dist(this.x, this.y)
+                // this.wind = this.alpha * (this.wind/(this.distanceToOrigin / rightside))
+                // this.wind -= this.velocity
+                if(this.gravity < 4) { this.gravity -= this.velocity }
+                if(this.rotation > 1 || this.rotation < -1) { this.rotation = rotation}
+                if (this.distanceToOrigin < 5) { this.isalive = false }
+                this.angle += this.rotation
+                let mousevec = winToVec(mouse.x, mouse.y)
+                let mouseToParticle = distTo(this.x, this.y, mousevec[0], mousevec[1])
+                this.alpha = (1/(mouseToParticle/10))
+                // this.alpha = (this.size / mouseToParticle) 
+                this.alpha += 0.2
+                if (this.alpha > 1) { this.alpha = 1 }
+                this.rotation = (this.rotation * this.alpha) // - this.rotation
+                if (this.distanceToOrigin > w || this.distanceToOrigin > h) {
+                    this.x = w
+                    this.y = h
+                }
+            }
+            draw() {
+                if (this.isalive) {
+                    let tmpfill = c.fillStyle
+                    c.fillStyle = 'rgba(200,15,15,' + this.alpha + ')'
+                    c.fillRect(this.x, this.y - this.gravity, this.size, this.size)
+                    c.fillStyle = tmpfill
+                }
+                else {
+                    // console.log('this particle is dead: ')
+                    // console.log(this)
+                }
+            }
+        }
+        // get coordinates after rotation matrix is applied
+        function rotateXY(x, y, rot) {
+            let newx = (x * Math.cos(rot)) - (y * Math.sin(rot))
+            let newy = (y * Math.cos(rot)) + (x * Math.sin(rot))
+            return [newx, newy]
+        }
+    </script>
+</body>
+</html>
