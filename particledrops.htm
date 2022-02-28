@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<head>
+    <title>Frivolous Gravitas - Particle Playground</title>
+<meta name="description" content="Javascript, HTML5 Canvas" /><meta charset="utf-8"></head>
+<body>
+<!-- MY LINKS
+channel: https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg
+facebook: https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987
+twitter: https://twitter.com/FrivolousGravi1
+iTunes / Apple podcast: https://podcasts.apple.com/us/podcast/id1545984577
+podcast rss feed url: https://krisdriver.com/feed/rssfeed.xml
+Google podcast: https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s
+Kris Driver: https://www.KrisDriver.com
+Kris's gitHub: https://github.com/paxdriver/html-tools
+
+Frivolous Gravitas Extras - Intro to Javascript Live Sessions
+
+1. Recursion: https://youtu.be/khaCHAiDCi0
+2. Functions: https://youtu.be/uN7UeBT60Bo
+3. Methods: https://youtu.be/KaaIvaCmiu8
+4. Classes: https://youtu.be/aEVjpqUk5N4
+5. Concurrency: https://youtu.be/oTDMwdIbVxU 
+6. Canvas: https://youtu.be/G2FN0sSdU-k
+
+For more on the maths, see javidx9's video on maths of making games - https://youtu.be/DPfxjQ6sqrc or "3 Blue 1 Brown" series on linear algebra for a deeper, more intuitive and more indepth look at vectors, matrices, transformations and visualization - https://www.youtube.com/watch?v=kjBOesZCoqc
+NOTE: neither is affiliate with me or this channel, I'm quite positive neither even knows I exist, they're just supremely good resources for learning math and code. I like to give credit where it's due.
+-->
+<canvas id="paint"></canvas>
+<script type='text/javascript'>
+    
+    // Set up the page body 
+    let body = document.getElementsByTagName('body')[0]
+    body.style.background = 'black'
+    body.style.overflow = 'hidden'
+    
+    // Set up my canvas element
+    const canvas = document.getElementById('paint')
+    const c = canvas.getContext('2d')
+    
+    // Get window width and height
+    let w = window.innerWidth
+    let h = window.innerHeight
+    
+    // Set canvas size, ie: its pixel resolution
+    canvas.width = w
+    canvas.height = h
+
+    // Sets canvas CCS styles (size of the canvas to be displayed by the web browser)
+    canvas.style.width = w + 'px'
+    canvas.style.height = h + 'px'
+    canvas.style.margin = 0
+    canvas.style.padding = 0
+    canvas.style.position = 'absolute'
+    canvas.style.left = 0
+    canvas.style.top = 0
+    canvas.style.background = 'rgba(20,20,20,1)'
+    canvas.style.border = '1px solid black'
+
+    // center the origin of the context for drawing unit circles and unit vectors
+    // context.translate(w/2, h/2)
+
+    let particleSystem_1 = []
+    let defaultSize = 35
+    let startingGravityVelocity = 0.05
+    
+    // create random color value
+    function roundrand(){
+        return Math.round(Math.random()*255)
+    }
+    // create color css string with default value for opacity (a.k.a 'alpha')
+    function colorMaker(alpha = 1) {
+        let x = `rgba(${roundrand()}, ${roundrand()}, ${roundrand()}, ${alpha})`
+        console.log(x)
+        return x
+    }
+
+    class ParticleOne {
+        constructor(){
+            this.x = Math.round(Math.random()*w)
+            this.y = 0
+            this.startingRoll = 1.5
+            this.size = Math.round(Math.random()*defaultSize)
+            this.alpha = 0
+            this.rgb = [Math.round(Math.random()*255), Math.round(Math.random()*255), Math.round(Math.random()*255)]
+            this.color = `rgba(${this.rgb[0]},${this.rgb[1]},${this.rgb[2]},${this.alpha})`
+            this.gravity = 1
+            this.maxGravity = Math.round(Math.random()*5)+this.size
+            this.gvelocity = startingGravityVelocity
+            this.maxGvelocity = 0.75 + this.size/35
+            this.minGvelocity = 0.85
+            this.startFalling = false
+            this.alphaByHeight = 0.95/h
+            this.bounceHeight = 1.1 * this.size
+            this.numOfBounces = 15
+            this.numBounce = 0
+            this.dying = false
+            this.isAlive = true
+
+        }
+        update(){
+            this.color = `rgba(${this.rgb[0]},${this.rgb[1]},${this.rgb[2]},${this.alpha})`   // update color with alpha value updated
+            if (this.isAlive) {            
+                // if particle is not fully visible while sitting at the top of the screen...
+                if ((this.y == 0) && (this.alpha < 1)){ 
+                    this.alpha += 0.02                               // increase alpha while below 1 at top of screen
+                }
+                // if particle is 0 with full alpha
+                else if(this.y == 0){ 
+                    this.startFalling = true
+                }
+                // make it roll a bit at the top before it starts falling
+                if (!this.startFalling) {
+                    if (this.x > w/2) { // if the x position is on the right of center, roll left
+                        this.x -= this.startingRoll
+                    }
+                    else {  // if the x position is on the left of center, roll right
+                        this.x += this.startingRoll
+                    }
+                }
+
+                // if particle needs to start falling
+                else if (this.startFalling) {   // else would work fine, but just to help readability
+                    this.y += this.gravity
+                    this.gravity += this.gvelocity      // speed up rate of fall
+                    this.gvelocity += this.gvelocity    // speed up rate of rate of fall
+
+                    if (this.gravity > this.maxGravity) { this.gravity = this.maxGravity }            // set max fall speed
+                    if (this.gvelocity > this.maxGvelocity) { this.gvelocity = this.maxGvelocity }        // set max rate of fall speed
+                    else if(this.gvelocity < this.minGvelocity){ this.gvelocity = this.minGvelocity }
+                    
+                    this.alpha -= this.alphaByHeight    // fade out as it falls to bottom
+                    // bounce when hitting the bottom
+                    if ( (this.y > (h-this.size)) && (this.dying == false) ) {
+                        this.gravity = -this.bounceHeight
+                        this.gvelocity = startingGravityVelocity
+                        this.bounceHeight = this.bounceHeight / 1.55   // make bounces progressively shorter
+                        if (this.numBounce > this.numOfBounces) { this.dying = true }
+                        else { this.numBounce ++ }
+                    }
+                    // if the ball is on the floor (meaning no longer bouncing)
+                    if(this.y > (h - (this.size))){
+                        // if it's already faded out, then kill it
+                        if (this.alpha < 0.03){
+                            this.isAlive = false
+                        }
+                        // if it's still visible and fading out, fade out more
+                        else if(this.y > h-(this.size/2)) {
+                            this.alpha -= 0.1
+                        }
+                    }
+                }
+            }
+        }
+        render(){
+            let tmp_color = [c.fillStyle, c.strokeStyle]
+            c.fillStyle = this.color
+            c.beginPath()
+            c.moveTo(this.x, this.y)
+            c.arc(this.x, this.y, this.size, 0, Math.PI*2, false)
+            c.closePath()
+            c.fill()
+            c.fillStyle = tmp_color[0]  // reset context's styling (in case there are more particle systems to draw..)
+            c.strokeStyle = tmp_color[1] // reset context styling
+        }
+    }
+
+    let numberOfParticles = 50
+
+    for(let i = 0; i<numberOfParticles; i++){
+        setTimeout( ()=>{
+            particleSystem_1.push(new ParticleOne())
+        }, Math.random()*800
+        )
+    }
+
+    console.log(particleSystem_1)
+
+    // create a batch of dead particles to kill. Run check on each render
+    let killparticles = []
+    
+    function render(){
+        c.clearRect(0,0,w,h)
+        particleSystem_1.forEach( (v,i,a)=>{
+            if (v.isAlive == false){
+                killparticles.push(v)   // add the currect particle to the kill list if it is marked to be killed
+            }
+            else {
+                v.update()
+                v.render()
+            }
+        })
+        if(killparticles.length > 0) {
+            //create a new particle for every dead one
+            // kill the dead ones from the partcile system
+            killparticles.forEach( v=>{
+                let idx = particleSystem_1.indexOf(v)
+                particleSystem_1.splice(idx, 1)
+                particleSystem_1.push(new ParticleOne())
+            } )
+            // using pop() here to cross them off the kill list. If the log is removed, make sure to call pop() on the kill list
+            console.log(killparticles.pop())
+            
+        }
+        window.requestAnimationFrame(render)
+    }
+
+    window.onload = ()=>{
+        render()
+    }
+</script>
+</body>
+</html>
