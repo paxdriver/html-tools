@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Frivolous Gravitas - Particle Playground</title>
+    <!-- <header><author>Kristopher Driver</author></header> -->
+    <meta name="description" content="Javascript, HTML5 Canvas" />
+    <meta charset="utf-8">
+</head>
+
+<body>
+    <!-- MY LINKS
+channel: https://www.youtube.com/channel/UCb3cCrFqaHFBp2s7jgtJvFg
+facebook: https://www.facebook.com/Frivolous-Gravitas-Podcast-109356198202987
+twitter: https://twitter.com/FrivolousGravi1
+iTunes / Apple podcast: https://podcasts.apple.com/us/podcast/id1545984577
+podcast rss feed url: https://krisdriver.com/feed/rssfeed.xml
+Google podcast: https://podcasts.google.com/feed/aHR0cHM6Ly9rcmlzZHJpdmVyLmNvbS9mZWVkL3Jzc2ZlZWQueG1s
+Kris Driver: https://www.KrisDriver.com
+Kris's gitHub: https://github.com/paxdriver/html-tools
+
+Frivolous Gravitas Extras - Intro to Javascript Live Sessions
+
+1. Recursion: https://youtu.be/khaCHAiDCi0
+2. Functions: https://youtu.be/uN7UeBT60Bo
+3. Methods: https://youtu.be/KaaIvaCmiu8
+4. Classes: https://youtu.be/aEVjpqUk5N4
+5. Concurrency: https://youtu.be/oTDMwdIbVxU 
+6. Canvas: https://youtu.be/G2FN0sSdU-k
+
+For more on the maths, see javidx9's video on maths of making games - https://youtu.be/DPfxjQ6sqrc or "3 Blue 1 Brown" series on linear algebra for a deeper, more intuitive and more indepth look at vectors, matrices, transformations and visualization - https://www.youtube.com/watch?v=kjBOesZCoqc
+NOTE: neither is affiliate with me or this channel, I'm quite positive neither even knows I exist, they're just supremely good resources for learning math and code. I like to give credit where it's due.
+-->
+    <canvas id="paint"></canvas>
+    <script type='text/javascript'>
+
+        // Set up the page body 
+        let body = document.getElementsByTagName('body')[0]
+        body.style.background = 'black'
+        body.style.overflow = 'hidden'
+
+        // Set up my canvas element
+        const canvas = document.getElementById('paint')
+        const c = canvas.getContext('2d')
+
+        // Get window width and height
+        let w = window.innerWidth
+        let h = window.innerHeight
+
+        // Set canvas size, ie: its pixel resolution
+        canvas.width = w
+        canvas.height = h
+
+        // Sets canvas CCS styles (size of the canvas to be displayed by the web browser)
+        canvas.style.width = w + 'px'
+        canvas.style.height = h + 'px'
+        canvas.style.margin = 0
+        canvas.style.padding = 0
+        canvas.style.position = 'absolute'
+        canvas.style.left = 0
+        canvas.style.top = 0
+        canvas.style.background = 'rgba(200,200,200,1)'
+        canvas.style.border = '1px solid black'
+
+        // distance formula
+        function dist(x1, x2, y1, y2) {
+            return Math.sqrt(Math.pow((x2 - x1), 2) + Math.pow((y2 - y1), 2))
+        }
+        // console.log(dist(100, 400, 100, 500))   // 3,4,5 triangle to check distance formula - WORKS
+
+        // store mouse coordinate data 
+        let mouse = { x: 0, y: 0 }  // initialize mouse coordinates
+        canvas.addEventListener('click', e => {
+            e.preventDefault()
+            mouse.x = e.clientX
+            mouse.y = e.clientY
+        })
+
+        let space_map = {}
+        let grid_scale = 25                         // ADJUSTABLE DEFAULT: default size of grid squares / vector plots (I like 25 to 50)
+        let grid_rows = Math.floor(h / grid_scale)  // floor() method removes floating points (aka the trailing decimal points)
+        let grid_cols = Math.floor(w / grid_scale)
+
+        class Vector {
+            constructor(x, y, angle, name, size = grid_scale) {
+                this.x = x
+                this.y = y
+                this.angle = angle
+                this.size = size
+                // this.length = Math.floor(size / 2.5)    // looks cleaner but harder to see. best with higher angleCorrection values to look like ripples in fabric
+                this.length = Math.floor(size / .5)     // looks hairy but easier to see shapes and patterns
+                this.centerx = this.x + (this.size / 2)
+                this.centery = this.y + (this.size / 2)
+                this.name = 'box-' + name
+                this.angleDiff = 0
+                this.distFromMouse = 0
+                this.angleCorrection = 6     // looks like a fabric wrinkle or something..
+
+
+                // color dynamics - too distracting though
+                this.r = 255
+                this.g = 255
+                this.b = 255
+                this.a = 1
+                this.color = `rgba(255,255,255,1)`
+            }
+            update() {
+
+
+                // back the the rest of the normal script below...
+                let x = mouse.x - this.centerx  // negative values will be left, positive will be right
+                let y = mouse.y - this.centery  // negative values will be up, positive values will be down
+
+                // update the angle based on the direction of x, y
+                let newangle = Math.atan2(y, x)  // returns -PI to PI, I want just PI*2 absolute value
+                if (newangle < 0) { newangle = newangle * (-1) }    // correct for negatives
+                else { newangle = Math.PI * 2 - newangle }              // correct for > 180 degrees
+                newangle = newangle * this.angleCorrection
+                this.angleDiff = Math.abs(this.angle - newangle)  // quantify how different new angle is from the old
+
+                // make sure the line doesn't spin all the way around for a small change by choosing the direction that minimizes the difference
+                let na1 = newangle + (this.angleDiff)    // use an angular velocity scaler
+                let na2 = newangle - (this.angleDiff)    // use an angular velocity scaler
+                if (na1 - na2 > na2 - na1) { newangle = na2 + (this.angleDiff) }
+                else { newangle = na1 + (this.angleDiff) }
+
+                // assign the new angle
+                this.angle = newangle % (Math.PI*2)
+
+                // -------------------------------------------------
+                // change some color based on distance from the mouse (but you can't see vector field patterns very clearly)
+                let [distx, disty] = [(x - mouse.x), (y - mouse.y)]
+                distx = Math.abs(distx)
+                disty = Math.abs(disty)
+                let distance = Math.floor(dist((mouse.x - x)/10, x, (mouse.y)/10, y))
+                this.r = Math.floor(distx % 255)/10          // the divide by 5 give it like a spotlight effect on the fill color
+                this.g = Math.floor(disty % 255)/10          // the divide by 5 give it like a spotlight effect on the fill color
+                this.b = Math.floor(distance % 255)/10       // the divide by 5 give it like a spotlight effect on the fill color
+                this.a = (distance / dist(0,w/3,0,h/3)).toFixed(4)
+                this.color = `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`
+                // console.log(this.r, this.g, this.b, this.a, this.color, this.name)
+                // -------------------------------------------------
+            }
+            draw() {
+
+                // do a mouse position check, for block highlighting based on mouse position (like a hover or click event)
+                if ((mouse.x > this.x) && (mouse.x < this.x + this.size)) {
+                    if ((mouse.y > this.y) && (mouse.y < this.y + this.size)) {
+                        c.lineWidth = 1
+                    }
+                }
+                else {
+                    c.strokeStyle = 'black'
+                    c.lineWidth = 0.5     // adjust the line thickness of 
+                }
+
+                // draw the vector's borders
+                c.moveTo(this.x, this.y)
+                c.beginPath()
+                let _fillColor = c.fillStyle    // save previous fill color
+                c.fillStyle = this.color    // update fill color
+                c.fillRect(this.x, this.y, this.size, this.size)
+                c.fillStyle = _fillColor    // reinstate the last fill color
+                c.strokeRect(this.x, this.y, this.size, this.size)
+                c.closePath()
+                c.stroke()
+
+                // draw the vector from center of square and out to the size (a line 1/3 of the square's size so it doesn't touch the border of its container)
+                let linex = this.centerx + (this.length * Math.cos(this.angle))
+                let liney = this.centery + (this.length * Math.sin(-this.angle))
+                c.moveTo(this.centerx, this.centery)    // move to center of the square
+                c.lineTo(linex, liney)
+                c.closePath()
+                c.stroke()
+            }
+        }
+
+        // Create a data object to store our vectors. This is basically going to be the vector field, in its entirety
+        space_map.rows = []
+        space_map.cols = []
+        let vec_counter = 0     // name the vectors?? maybe can pull up their neighbors by name instead of indexes too?
+
+        // Let's start by making rows out of each Vector() object based on the screen dimensions and sizes defined above
+        for (let i = 0; i < grid_rows; i++) {
+            let tmp_cols = []   // initializing an array to use to assign to our vector space once they're gathered 1 row at a time
+            for (let j = 0; j < grid_cols; j++) {
+                // map.rows is an array of rows, each row has arrays of columns
+                tmp_cols.push(new Vector(j * grid_scale, i * grid_scale, 0, vec_counter))
+                vec_counter++
+            }
+            space_map.rows[i] = tmp_cols
+        }
+
+        // initialize the column indexes. Doing this differently than for rows since I'm not creating new Vector() objects this time, I want to reuse the ones stored in space_map.rows
+        for (let n = 0; n < space_map.rows[0].length; n++) {
+            space_map.cols[n] = []
+        }
+        // map through each row...
+        space_map.rows.forEach((rowvector, index, rowarray) => {
+            // map through each column of a row...
+            rowvector.forEach((unitvec, column, arrayOfVectors) => {
+                space_map.cols[column].push(unitvec)
+            })
+        })
+
+        function render() {
+            c.clearRect(0, 0, w, h)
+            space_map.rows.forEach(x => {
+                x.forEach((v, i) => {
+                    v.update()
+                    v.draw()
+                })
+            })
+            window.requestAnimationFrame(render)
+        }
+
+        render()
+
+        function updateMouseCoordinates(e) {
+            mouse.x = e.clientX
+            mouse.y = e.clientY
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            updateMouseCoordinates(e)
+        })
+
+    </script>
+</body>
+
+</html>
