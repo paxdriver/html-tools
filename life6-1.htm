@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Cellular Automata Sketch</title>
+  <meta name="Kris Driver" content="https://krisdriver.com" />
+  <meta name="keyword" content="RF, royalty-free, royalty free, license, commercial, graphic, artist, sales, marketing, wallpaper, blender, image, filter, GIMP, Photoshop, editing, publishing, design, lighting, effects, transparency, picture, abstract, collection, set" />
+  <meta name="author" content="Kristopher Driver - krisdriver.com" />
+  <link rel=”canonical” href=”https://www.krisdriver.com” />
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script type="module">
+
+// set up the body
+const body = document.getElementsByTagName('body')[0]
+body.style.overflow = 'hidden'
+body.style.padding = '0'
+body.style.margin = '0'
+
+// set up the canvas
+const canvas = document.getElementById('canvas')
+const c = canvas.getContext('2d')
+let canvaswidth = window.innerWidth
+let canvasheight = window.innerHeight
+canvas.width = canvaswidth
+canvas.height = canvasheight
+canvas.style.border = '1px solid black'
+canvas.style.backgroundColor = 'rgba(250,250,250,1)'
+canvas.style.width = Math.round(canvaswidth) + 'px'
+canvas.style.height = Math.round(canvasheight) + 'px'
+
+// get cell number from dimensions
+const border_width = 1
+const cellgaps = border_width * 2
+// const cellsinrow = 25
+// const cellsincol = 15
+const cellsinrow = 99
+const cellsincol = 65
+const cellsize = { width: Math.round((canvaswidth / cellsinrow)-cellgaps), height: Math.round((canvasheight / cellsincol)-cellgaps) }
+const updateTimer = 75
+
+// ADJUSTABLE DEFAULT VALUES
+const defaultcolor = 'rgba(155, 55, 55, 1)'
+const neighbourcolor = 'rgba(100,100,100,0.5)'
+const mouseoverhighlight = 'rgba(195, 105, 225, 0.8)'
+const highlightedcellcolor = 'rgba(200,200,200,0.35)'
+const defaultborder = '1px solid white'
+
+
+// PARENT FOR METHODS
+class CellMethods{
+  constructor(){
+    this.numNeighboursSelected = 0
+  }
+
+  // method to change fill or stroke color
+  changeColor(rgba_str, str_fill_or_stroke, that) {
+    // DEV: use switch so we can adjust more than just background and border, maybe text too
+     switch(str_fill_or_stroke) {
+       case 'stroke':
+         return that.border = rgba_str
+      default:      // fill is the default
+        return that.color = rgba_str
+    }
+  }
+
+  // method for the cell to draw itself
+  drawCell(that){
+    // save existing values
+    let tmp_fill = c.fillStyle
+    let tmp_stroke = c.strokeStyle
+    let tmp_borderwidth = c.lineWidth
+    let tmp_font = c.font
+    
+    // fill and stroke cells
+    c.fillStyle = (that.isSelected) ? highlightedcellcolor : that.color
+    c.strokeStyle = that.border
+    c.lineWidth = border_width
+    c.fillRect(that.x, that.y, that.size.width, that.size.height)
+    // c.fillRect(this.x+border_width, this.y+border_width, this.size.width-border_width, this.size.height-border_width)
+    c.strokeRect(that.x, that.y, that.size.width+border_width, that.size.height+border_width)
+    
+    // text id labels
+    c.fillStyle = that.textColor
+    c.font = `${that.textSize}px Arial`
+    c.fillText(that.id, that.x+(cellgaps*3), that.y+(that.size.height-(cellgaps*3)))
+    c.font = tmp_font
+
+    // restore canvas stroke and fill
+    c.fillStyle = tmp_fill
+    c.strokeStyle = tmp_stroke
+    c.lineWidth = tmp_borderwidth    
+  }
+
+  checkRules(that){
+
+    if ((that.leftNeighbour !== undefined) && (that.rightNeighbour !== undefined) && (that.topNeighbour !== undefined) && (that.bottomNeighbour !== undefined) && (that.bottomleft !== undefined) && (that.bottomright !== undefined) && (that.topleft !== undefined) && (that.topright !== undefined)) {
+      that.numNeighboursSelected = 0
+
+      function checkNeighbourIsSelected(whichNeighbour) {
+        if (whichNeighbour.isSelected) {
+            that.numNeighboursSelected++
+        }
+      }
+      that.neighbourData.forEach( v=> { checkNeighbourIsSelected(v) })
+
+      // // if my neighbours are selected
+      if (that.isSelected) {
+      if (that.numNeighboursSelected > 5){
+          that.isSelected = false
+      }
+      else if(that.numNeighboursSelected < 4){
+        that.leftNeighbour.isSelected = !that.leftNeighbour.isSelected
+        that.rightNeighbour.isSelected = !that.leftNeighbour.isSelected
+        that.topNeighbour.isSelected = !that.leftNeighbour.isSelected
+        that.bottomNeighbour.isSelected = !that.leftNeighbour.isSelected
+      }
+    }
+    else if (that.numNeighboursSelected < 2) that.isSelected = true
+    else if (that.numNeighboursSelected > 5) that.isSelected = false
+    }
+  }
+}
+
+// write a class to define structure of each cell
+class Cell extends CellMethods{
+  constructor(id, x, y, selected){
+    super()
+    this.id = id
+    this.x = x
+    this.y = y
+    this.size = cellsize
+    this.color = defaultcolor
+    this.border = 'rgba(0,0,0,1)'
+    this.textColor = 'rgba(0,0,0,1)'
+    this.textSize = cellsize.height/5     // dynamically adjust text size based on the cell's height, since window is usually wider than it is tall
+    this.isSelected = (selected) ? selected : false
+  }
+  changeColor(rgba_str, str_fill_or_stroke){ super.changeColor(rgba_str, str_fill_or_stroke, this)}
+  checkRules(){ super.checkRules(this) }
+  drawCell(){ super.drawCell(this) }
+}
+
+// Bundle all the cell objects into an array to pass into a render function whenever we want to draw all the objects which have been created
+function buildCellTable(){
+  let columns = []  // initial array to push rows into
+  for (let col = 0; col < cellsincol; col++) {  // cellsincol aka the row index within the column
+    let row = []
+    for (let cellrow = 0; cellrow < cellsinrow; cellrow++) {  // cellsinrow aka the column index
+      let newid = `col${cellrow}_row${col}` // create string for unique id's based on array indices
+      row.push( new Cell(newid, cellrow*(cellsize.width+cellgaps),col*(cellsize.height+cellgaps) ))
+    }
+    columns.push(row)
+  }
+  return columns
+}
+
+// poplate array of all cells, final output is a 2d array
+let allcells = buildCellTable()
+
+// create hash table of allcells indexes by cell id's
+let cellidhashtable = {}
+allcells.forEach( (v,rowindex)=>{
+  v.forEach( (val, colindex)=>{
+    cellidhashtable[val.id] = [rowindex, colindex]  // generate hashtable 
+    val.allcellsposition = [rowindex, colindex]     // add cell indexes in allcells to each cell for future reference if already selected
+    // getNeighbourData(val.allcellsposition[0], val.allcellsposition[1])  // same as below
+
+    getNeighbourData(rowindex, colindex, allcells)  // add references to top, bottom, left and right neighbours, and wrap on edges
+  } )
+})
+
+
+// create selection function drawing just the cell from the hash table of id's
+function getCellFromId(id_str){
+  let rowindex = cellidhashtable[id_str][0]
+  let colindex = cellidhashtable[id_str][1]
+  
+  return allcells[rowindex][colindex]
+}
+
+// get neighbours and add them to cell object info so every cell has a reference to all of its neighbours
+function getNeighbourData (rowindex, colindex, cellstable){
+  // ADD NEIGHBOUR DATA TO EACH CELL OBJECT
+  let _currentcell = cellstable[rowindex][colindex]
+  let _collen = cellstable[0].length
+  let _rowlen = cellstable.length
+  // get left neighbour and wrap to far right if it's the first in the row
+  if (colindex > 0) _currentcell.leftNeighbour = cellstable[rowindex][colindex-1]
+  else _currentcell.leftNeighbour = cellstable[rowindex][_collen-1]
+  // get right neighbour and wrap to far left if it's the last in the row
+  if (colindex == cellstable[rowindex][_collen-1]) _currentcell.rightNeighbour = cellstable[rowindex][0]
+  else _currentcell.rightNeighbour = cellstable[rowindex][colindex+1] 
+  
+  // get the cell above and wrap to the bottom if it's the top row 
+  if (rowindex > 0) { 
+    _currentcell.topNeighbour = cellstable[rowindex-1][colindex]
+    if (colindex > 0) _currentcell.topleft = cellstable[rowindex-1][colindex-1] // get top left
+    else _currentcell.topleft = cellstable[rowindex-1][_collen-1] // wrap top left if on the left border
+    if (colindex === _collen-1) _currentcell.topright = cellstable[rowindex-1][0] // get top right
+    else _currentcell.topright = cellstable[rowindex-1][colindex+1] // wrap top right
+  }
+  else {
+    _currentcell.topNeighbour = cellstable[_rowlen-1][colindex]
+    if (colindex > 0) _currentcell.topleft = cellstable[_rowlen-1][colindex-1] // get bottom left
+    else _currentcell.topleft = cellstable[_rowlen-1][_collen-1] // wrap bottom left if on the left border
+    if (colindex === _collen-1) _currentcell.topright = cellstable[_rowlen-1][0] // get bottom right
+    else _currentcell.topright = cellstable[_rowlen-1][colindex+1] // wrap bottom right if on the right border
+  }
+
+  // get the cell below and wrap to the top if it's the bottom row
+  if (rowindex === _rowlen-1) {
+    _currentcell.bottomNeighbour = cellstable[0][colindex]
+    if(colindex > 0) _currentcell.bottomleft = cellstable[0][colindex-1]  // bottom left
+    else _currentcell.bottomleft = cellstable[0][_collen-1] // wrap bottomleft if on left edge
+    if(colindex < _collen-1) _currentcell.bottomright = cellstable[0][colindex+1] // bottom right
+    else _currentcell.bottomright = cellstable[0][0]  // wrap bottom right if on right edge
+  }
+  else {
+    _currentcell.bottomNeighbour = cellstable[rowindex+1][colindex]
+    if(colindex > 0) _currentcell.bottomleft = cellstable[rowindex+1][colindex-1] // bottom left
+    else _currentcell.bottomleft = cellstable[rowindex+1][_collen-1]  // wrap bottom left if on left edge
+    if(colindex < _collen-1) _currentcell.bottomright = cellstable[rowindex+1][colindex+1]  // bottom right
+    else _currentcell.bottomright = cellstable[rowindex+1][0] // wrap bottom right if on right edge
+  }
+
+  // lump all neighbours together
+  _currentcell.neighbourData = []
+  _currentcell.neighbourData.push(_currentcell.leftNeighbour, _currentcell.rightNeighbour, _currentcell.topNeighbour, _currentcell.bottomNeighbour, _currentcell.topleft, _currentcell.topright, _currentcell.bottomleft, _currentcell.bottomright)
+}
+
+// make changes to a new table before drawing the new table so updates don't affect next cell changes
+function buildNextCatalog(oldTable){
+    let newTable = recursiveCopy(oldTable)  // take all the data from the old table of class "Cell", but will be missing the methods so we need to create new Cell objects using data from oldtable
+
+    let result = [] // final output, array of arrays of cells (rows and columns)
+
+    let tmpy = []   // temporary row of cells
+    newTable.forEach( (val, rowindex) => { 
+      val.forEach( (v, colindex) => {
+        let newid = `col${rowindex}_row${colindex}` // create string for unique id's based on array indices
+        tmpy.push(new Cell(newid, v.x, v.y, oldTable[rowindex][colindex].isSelected))
+        v.allcellsposition = [rowindex, colindex]     // add cell indexes in allcells to each cell for future reference
+        
+      })
+      // end of hash table creation
+      result.push(tmpy) // 
+      tmpy = [] // ready it for the next iteration
+    }
+    )
+    return result
+  }
+  
+function recursiveCopy(arr_obj){
+    if(typeof arr_obj === "object") {
+        if ( Array.isArray(arr_obj) ) {
+            let result = []
+            // if the current element is an array
+            arr_obj.forEach( v => { result.push(recursiveCopy(v)) } )
+            return result
+        }
+        else {
+            // if it's an object we don't want to deep copy the object elements each since we know there's no arrays in our class
+            let result = {...arr_obj}
+            return result
+        }
+    }
+    else if (typeof arr_obj === "number" || typeof arr_obj === "string"){
+        // above conditions are skipped if current element is not an object or array, so it just returns itself
+        return arr_obj
+    }
+    else if (typeof arr_obj === "boolean") {
+      return arr_obj
+    }
+    else if(typeof arr_obj === "function") {
+      return console.log("function, skipping this one")
+    }
+    else {
+      return console.log(`ERROR: ${arr_obj}, typeof: ${typeof arr_obj}`)
+    }
+}
+
+
+let counter = 0
+// initial render call
+function render(){
+    c.clearRect(0, 0, window.innerWidth, window.innerHeight)
+    let newtable = buildNextCatalog(allcells)
+    newtable.forEach( (v, row)=>{
+      v.forEach((val, col) => {
+        getNeighbourData(row, col, newtable)  // add references to top, bottom, left and right neighbours, and wrap on edges
+      })
+    })
+
+    // WORK IN PROGRESS
+    // DEV: Issue here is, check rules is attached to each cell, and each cell is then updating including the preceding cells' updates. What we want is an update that refers to the last rendered cells for oen whole pass, then updates the render based on that alone.
+      // - maybe cells can only switch themselves on or off?
+
+      newtable.forEach( (val, i) => val.forEach( (v, j) => {
+      // - maybe refer to allcells (current table) but apply "isSelected" updates to nextTable?
+      // - maybe instead of a method just a regular function and pass in the current value cell?
+        // + so map the self changes to a new array, then iterate through the array to apply the changes to the table once they've all completed?
+      // - maybe use a "nextChange" property boolean to see if it's already been updated?
+      // - maybe use a nextChange property boolean to deny neighbour cell from updating it?
+      v.checkRules()
+    } ))
+    newtable.forEach( val => val.forEach( v => {
+      v.drawCell()
+    } ))
+    allcells = []
+    allcells = [...newtable]
+    
+    // WORK IN PROGRESS
+    
+    console.log(`render counter: ${counter++}`)
+    // requestAnimationFrame(setTimeout(render, updateTimer))
+    setTimeout( ()=>{ 
+        requestAnimationFrame(render)
+    }, updateTimer )
+}
+
+render()
+
+// EVENT LISTENER - CLICK
+canvas.addEventListener( 'click', clickHandler)
+
+// EVENT LISTENER - MOVEMENT
+canvas.addEventListener('mousemove', mouseMoveHandler)
+
+function clickHandler(evt) {
+  evt.preventDefault()
+  let clickedCell = selectedCell({ x: evt.clientX, y: evt.clientY })
+  clickedCell.isSelected = !clickedCell.isSelected
+  console.log(clickedCell)
+}
+
+function activateCellsAtRandom(cell){
+    let clickedCell = cell
+    if(clickedCell.numNeighboursSelected < 5) {
+        let rando = parseInt(Math.random().toString().split('')[4])
+        if ( rando < (1/4)*10 ) { clickedCell.leftNeighbour.isSelected = !(clickedCell.leftNeighbour.isSelected) }
+        else if ( rando < (2/4)*10 ) { clickedCell.rightNeighbour.isSelected = !(clickedCell.rightNeighbour.isSelected) }
+        else if ( rando < (3/4)*10 ) { clickedCell.topNeighbour.isSelected = !(clickedCell.topNeighbour.isSelected) }
+        else { clickedCell.bottomNeighbour.isSelected = !(clickedCell.bottomNeighbour.isSelected) }
+    }
+}
+
+// store the current and last selected cells to revert colors on mouseout, since the event applies to the entire canvas
+let cellmemory = []
+function mouseMoveHandler(e){
+  let mousecoords = { x: e.clientX, y: e.clientY }
+  let tmpcell = selectedCell(mousecoords)
+  
+  // make sure we've found the cell before manipulating it, selectedCell() can return an error if thrown or string if it doesn't finish
+  if (tmpcell === 'nothing found yet' || tmpcell instanceof Error) return false
+  else {
+    // for the first calls while memory is empty
+    if (cellmemory.length === 0) { 
+      cellmemory.push(tmpcell)
+      cellmemory[0].changeColor(mouseoverhighlight)
+    }
+    else if(cellmemory[0] !== tmpcell) { 
+      // update cell memory array
+      let shallowcopy = [...cellmemory]
+      cellmemory[1] = shallowcopy[0]
+      cellmemory[0] = tmpcell
+      // update highlight and standard color on mouse in and mouse out
+      cellmemory[0].changeColor(mouseoverhighlight)
+      cellmemory[1].changeColor(defaultcolor)
+    }
+  }
+}
+
+// get click selection function, compare mouse position with cell boundaries
+function selectedCell(obj_mouse_coords) {
+  let posx = obj_mouse_coords.x
+  let posy = obj_mouse_coords.y
+  let result = 'nothing found yet'
+  try { // error handling
+    for(let outer = 0; outer < allcells.length; outer++){   // forEach() would have no way of breaking loop once item was found
+      for (let inner = 0; inner < allcells[0].length; inner++) {
+        // check bounds of current cell to see if it contains the mouse
+        let cell = allcells[outer][inner]
+        if ((posx < (cell.x+cellsize.width+cellgaps)) && (posx > cell.x) && (posy < (cell.y+cellsize.height+cellgaps)) && (posy > cell.y) ){
+          result = cell
+          break
+        }
+      }
+      // DEV NOTES: Worst case scenario is O(n+1) vs forEach() being constant O(n) no matter how quickly it's found... 
+      // add n"+1" since technically 1 extra line of code is added as a check across all cells - but it's a bool, in a 1-line conditional, which is CPU cached anyway
+      // However, if the worst case were expected to be common (selecting the last cell in the 2d array), then this for loop would still
+      // be the idea solution but iterating in reverse instead of starting at zero and it would be O(constant 1) in that case.
+      if (result !== 'nothing found yet') break 
+    }
+    if (result === 'nothing found yet') { 
+      throw new Error("Couldn't find a cell matching those mouse coordinates on click event handler") // custom error, just being cool
+    }
+  }
+  catch(err) {
+    // console.log(err)  // my custom error
+    return err  // use 'result instanceof Error' to check if you get the return value you want or an error returned, for example
+  } 
+  return result   // DEV: result will be a string if an error, throw an error in this function before returning the result if a cell is not produced or found
+}
+
+</script>
+</body></html>
+
+
